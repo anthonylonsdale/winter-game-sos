@@ -1,0 +1,33 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\Users\\alons\\VS Code Projects\\NewGame\\wwwroot\\css\\site.css",
+      "PackagePath": "staticwebassets\\css\\site.css"
+    },
+    {
+      "Id": "C:\\Users\\alons\\VS Code Projects\\NewGame\\wwwroot\\js\\game.js",
+      "PackagePath": "staticwebassets\\js\\game.js"
+    },
+    {
+      "Id": "C:\\Users\\alons\\VS Code Projects\\NewGame\\wwwroot\\js\\snowfall.js",
+      "PackagePath": "staticwebassets\\js\\snowfall.js"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.SnowballStacker.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.SnowballStacker.props",
+      "PackagePath": "build\\SnowballStacker.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.SnowballStacker.props",
+      "PackagePath": "buildMultiTargeting\\SnowballStacker.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildTransitive.SnowballStacker.props",
+      "PackagePath": "buildTransitive\\SnowballStacker.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

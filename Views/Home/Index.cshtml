@@ -1,0 +1,97 @@
+@model LeaderboardViewModel
+@{
+    ViewData["Title"] = "Welcome";
+}
+
+<div class="launch-container">
+    <div class="game-title">
+        <div class="decorative-snowflakes">
+            <span>*</span>
+            <span>*</span>
+            <span>*</span>
+        </div>
+        <h1>Snowball Stacker</h1>
+        <p class="subtitle">Stack 'em high, watch the coal fly!</p>
+    </div>
+
+    <div class="main-content">
+        <div class="card start-card">
+            <h2 class="card-title">
+                <span class="icon">&#9924;</span>
+                Start Playing
+            </h2>
+            <form asp-action="StartGame" method="post" class="name-form">
+                <div class="input-group">
+                    <label for="playerName">Enter Your Name</label>
+                    <input type="text"
+                           id="playerName"
+                           name="playerName"
+                           class="name-input"
+                           placeholder="Your name here..."
+                           maxlength="50"
+                           required
+                           autocomplete="off" />
+                </div>
+                <button type="submit" class="start-button" id="startBtn">
+                    Let's Stack!
+                </button>
+            </form>
+        </div>
+
+        <div class="card leaderboard-card">
+            <h2 class="card-title">
+                <span class="icon">&#127942;</span>
+                Leaderboard
+            </h2>
+            <div class="leaderboard-list">
+                @if (Model.TopScores.Any())
+                {
+                    @foreach (var entry in Model.TopScores)
+                    {
+                        var rankClass = entry.Rank switch
+                        {
+                            1 => "top-1",
+                            2 => "top-2",
+                            3 => "top-3",
+                            _ => ""
+                        };
+                        <div class="leaderboard-entry @rankClass">
+                            <div class="rank">@entry.Rank</div>
+                            <div class="player-info">
+                                <div class="player-name">@entry.PlayerName</div>
+                                <div class="blocks-count">@entry.BlocksStacked blocks stacked</div>
+                            </div>
+                            <div class="player-score">@entry.Score.ToString("N0")</div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="empty-leaderboard">
+                        <div class="icon">&#128202;</div>
+                        <p>No scores yet!</p>
+                        <p>Be the first to stack some snowballs!</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // Enable button only when name is entered
+    const nameInput = document.getElementById('playerName');
+    const startBtn = document.getElementById('startBtn');
+
+    nameInput.addEventListener('input', function() {
+        startBtn.disabled = this.value.trim().length === 0;
+    });
+
+    // Initial state
+    startBtn.disabled = nameInput.value.trim().length === 0;
+
+    // Focus input on load
+    nameInput.focus();
+</script>
+}
