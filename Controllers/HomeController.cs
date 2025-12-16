@@ -73,4 +73,18 @@ public class HomeController : Controller
     {
         return View();
     }
+
+    [HttpPost]
+    public async Task<IActionResult> ClearAllData()
+    {
+        // Clear all game scores first (due to foreign key constraint)
+        _context.GameScores.RemoveRange(_context.GameScores);
+
+        // Then clear all players
+        _context.Players.RemoveRange(_context.Players);
+
+        await _context.SaveChangesAsync();
+
+        return RedirectToAction("Index");
+    }
 }

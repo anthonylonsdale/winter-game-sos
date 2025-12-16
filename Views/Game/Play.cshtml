@@ -1,92 +1,82 @@
 @{
     ViewData["Title"] = "Play";
-    Layout = null;
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Snowball Stacker - Playing</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+@section Styles {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
-</head>
-<body>
-    <div class="game-container">
-        <header class="game-header">
-            <div class="player-display">
-                <div class="player-avatar">&#9924;</div>
-                <div>
-                    <div class="player-label">Player</div>
-                    <div class="name" id="playerName">@ViewBag.PlayerName</div>
-                </div>
-            </div>
+}
 
-            <div class="score-display">
-                <div class="score-item">
-                    <div class="score-label">Height</div>
-                    <div class="score-value" id="scoreDisplay">0<span class="unit">px</span></div>
-                </div>
-                <div class="score-item">
-                    <div class="score-label">Blocks</div>
-                    <div class="score-value blocks" id="blocksDisplay">0</div>
-                </div>
-            </div>
-
-            <div class="game-actions">
-                <button class="btn btn-secondary" id="restartBtn">Restart</button>
-                <a href="/" class="btn btn-secondary">Exit</a>
-            </div>
-        </header>
-
-        <div class="game-area" id="gameArea">
-            <canvas id="game-canvas"></canvas>
-
-            <div class="instructions" id="instructions">
-                <h2>Click to Start!</h2>
-                <p>Move or swipe to control the platform</p>
-                <p>Catch blocks and stack them high!</p>
+<div class="game-container">
+    <header class="game-header">
+        <div class="player-display">
+            <div class="player-avatar">&#9924;</div>
+            <div>
+                <div class="player-label">Player</div>
+                <div class="name" id="playerName">@ViewBag.PlayerName</div>
             </div>
         </div>
-    </div>
 
-    <!-- Game Over Modal -->
-    <div class="modal-overlay" id="gameOverModal">
-        <div class="modal">
-            <h2 class="modal-title">Game Over!</h2>
-            <p class="modal-subtitle">Great stacking, <span id="modalPlayerName">@ViewBag.PlayerName</span>!</p>
-
-            <div class="final-stats">
-                <div class="stat-box score">
-                    <div class="label">Max Height</div>
-                    <div class="value" id="finalScore">0<span class="unit">px</span></div>
-                </div>
-                <div class="stat-box">
-                    <div class="label">Blocks Stacked</div>
-                    <div class="value" id="finalBlocks">0</div>
-                </div>
+        <div class="score-display">
+            <div class="score-item">
+                <div class="score-label">Height</div>
+                <div class="score-value" id="scoreDisplay">0<span class="unit">px</span></div>
             </div>
-
-            <div class="rank-display">
-                <div class="label">Your Rank</div>
-                <div class="rank">#<span id="playerRank">-</span></div>
-            </div>
-
-            <div class="modal-actions">
-                <button class="btn btn-primary" id="playAgainBtn">Play Again</button>
-                <a href="/" class="btn btn-secondary">Leaderboard</a>
+            <div class="score-item">
+                <div class="score-label">Blocks</div>
+                <div class="score-value blocks" id="blocksDisplay">0</div>
             </div>
         </div>
-    </div>
 
-    <script>
-        const PLAYER_ID = @ViewBag.PlayerId;
-        const PLAYER_NAME = "@ViewBag.PlayerName";
-    </script>
-    <script src="~/js/game.js" asp-append-version="true"></script>
-</body>
-</html>
+        <div class="game-actions">
+            <button class="btn btn-secondary" id="restartBtn">Restart</button>
+            <a href="/" class="btn btn-secondary">Exit</a>
+        </div>
+    </header>
+
+    <div class="game-area" id="gameArea">
+        <canvas id="game-canvas"></canvas>
+
+        <div class="instructions" id="instructions">
+            <h2>Click to Start!</h2>
+            <p>Move or swipe to control the platform</p>
+            <p>Catch blocks and stack them high!</p>
+        </div>
+    </div>
+</div>
+
+<!-- Game Over Modal -->
+<div class="modal-overlay" id="gameOverModal">
+    <div class="modal">
+        <h2 class="modal-title">Game Over!</h2>
+        <p class="modal-subtitle">Great stacking, <span id="modalPlayerName">@ViewBag.PlayerName</span>!</p>
+
+        <div class="final-stats">
+            <div class="stat-box score">
+                <div class="label">Max Height</div>
+                <div class="value" id="finalScore">0<span class="unit">px</span></div>
+            </div>
+            <div class="stat-box">
+                <div class="label">Blocks Stacked</div>
+                <div class="value" id="finalBlocks">0</div>
+            </div>
+        </div>
+
+        <div class="rank-display">
+            <div class="label">Your Rank</div>
+            <div class="rank">#<span id="playerRank">-</span></div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-primary" id="playAgainBtn">Play Again</button>
+            <a href="/" class="btn btn-secondary">Leaderboard</a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const PLAYER_ID = @ViewBag.PlayerId;
+    const PLAYER_NAME = "@ViewBag.PlayerName";
+</script>
+<script src="~/js/game.js" asp-append-version="true"></script>
+}

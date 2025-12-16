@@ -123,3 +123,4 @@ C:\Users\alons\VS Code Projects\NewGame\obj\Debug\net8.0\refint\SnowballStacker.
 C:\Users\alons\VS Code Projects\NewGame\obj\Debug\net8.0\SnowballStacker.pdb
 C:\Users\alons\VS Code Projects\NewGame\obj\Debug\net8.0\SnowballStacker.genruntimeconfig.cache
 C:\Users\alons\VS Code Projects\NewGame\obj\Debug\net8.0\ref\SnowballStacker.dll
+C:\Users\alons\VS Code Projects\NewGame\obj\Debug\net8.0\SnowballStacker.sourcelink.json

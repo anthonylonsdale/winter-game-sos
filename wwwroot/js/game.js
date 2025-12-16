@@ -39,7 +39,7 @@
         fallThreshold: 120,
         autoDropDelay: 350,          // Faster block drops
         projectileFrequency: 2,      // Projectiles every N blocks
-        projectileTypes: ['coal', 'iceball', 'snowball', 'hailstone', 'candycane', 'ornament'],
+        projectileTypes: ['coal', 'iceball', 'snowball', 'hailstone', 'candycane', 'ornament', 'giftbox', 'star', 'icicle', 'mistletoe'],
         platformSpeed: 0.2,          // How fast platform follows mouse
         momentumTransfer: 1.0,       // Blocks move WITH platform (glued)
         screenShakeIntensity: 8,     // Pixel intensity of screen shake
@@ -407,67 +407,160 @@
             noise.stop(now + 0.15);
         },
 
-        // Projectile spawn whoosh
+        // Projectile spawn warning - dramatic incoming sound
         playProjectileSpawn() {
             if (!this.initialized) return;
             this.resume();
 
             const now = this.audioContext.currentTime;
 
-            const bufferSize = this.audioContext.sampleRate * 0.3;
+            // Warning siren/alarm sound
+            const osc = this.audioContext.createOscillator();
+            const oscGain = this.audioContext.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(600, now);
+            osc.frequency.setValueAtTime(800, now + 0.1);
+            osc.frequency.setValueAtTime(600, now + 0.2);
+            osc.frequency.setValueAtTime(800, now + 0.3);
+            oscGain.gain.setValueAtTime(0.08, now);
+            oscGain.gain.setValueAtTime(0.06, now + 0.15);
+            oscGain.gain.setValueAtTime(0.08, now + 0.3);
+            oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+            osc.connect(oscGain);
+            oscGain.connect(this.masterGain);
+            osc.start(now);
+            osc.stop(now + 0.5);
+
+            // Whoosh sound
+            const bufferSize = this.audioContext.sampleRate * 0.4;
             const buffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate);
             const data = buffer.getChannelData(0);
             for (let i = 0; i < bufferSize; i++) {
                 const t = i / bufferSize;
-                data[i] = (Math.random() * 2 - 1) * Math.sin(t * Math.PI) * 0.5;
+                data[i] = (Math.random() * 2 - 1) * Math.sin(t * Math.PI) * 0.6;
             }
 
             const noise = this.audioContext.createBufferSource();
             noise.buffer = buffer;
 
             const filter = this.audioContext.createBiquadFilter();
-            filter.type = 'bandpass';
-            filter.frequency.setValueAtTime(2000, now);
-            filter.frequency.exponentialRampToValueAtTime(500, now + 0.3);
-            filter.Q.value = 2;
+            filter.type = 'highpass';
+            filter.frequency.setValueAtTime(3000, now);
+            filter.frequency.exponentialRampToValueAtTime(300, now + 0.4);
 
             const gain = this.audioContext.createGain();
-            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
 
             noise.connect(filter);
             filter.connect(gain);
             gain.connect(this.masterGain);
             noise.start(now);
-            noise.stop(now + 0.3);
+            noise.stop(now + 0.4);
+        },
+
+        // Individual projectile launch sound
+        playProjectileLaunch(type = 'coal') {
+            if (!this.initialized) return;
+            this.resume();
+
+            const now = this.audioContext.currentTime;
+
+            // Different sounds for different projectile types
+            const sounds = {
+                coal: { freq: 150, type: 'sawtooth', duration: 0.15 },
+                iceball: { freq: 1200, type: 'sine', duration: 0.2 },
+                snowball: { freq: 400, type: 'triangle', duration: 0.12 },
+                hailstone: { freq: 800, type: 'square', duration: 0.1 },
+                candycane: { freq: 1000, type: 'sine', duration: 0.15 },
+                ornament: { freq: 600, type: 'sine', duration: 0.25 },
+                giftbox: { freq: 300, type: 'square', duration: 0.15 },
+                star: { freq: 1500, type: 'sine', duration: 0.3 },
+                icicle: { freq: 900, type: 'triangle', duration: 0.18 },
+                mistletoe: { freq: 500, type: 'sine', duration: 0.15 }
+            };
+
+            const config = sounds[type] || sounds.coal;
+
+            // Main tone - descending (falling from above)
+            const osc = this.audioContext.createOscillator();
+            const oscGain = this.audioContext.createGain();
+            osc.type = config.type;
+            osc.frequency.setValueAtTime(config.freq * 1.5, now);
+            osc.frequency.exponentialRampToValueAtTime(config.freq, now + config.duration);
+            oscGain.gain.setValueAtTime(0.1, now);
+            oscGain.gain.exponentialRampToValueAtTime(0.001, now + config.duration);
+            osc.connect(oscGain);
+            oscGain.connect(this.masterGain);
+            osc.start(now);
+            osc.stop(now + config.duration);
+
+            // Add sparkle for special types
+            if (['star', 'ornament', 'iceball'].includes(type)) {
+                const sparkle = this.audioContext.createOscillator();
+                const sparkleGain = this.audioContext.createGain();
+                sparkle.type = 'sine';
+                sparkle.frequency.setValueAtTime(2000 + Math.random() * 1000, now);
+                sparkleGain.gain.setValueAtTime(0.05, now);
+                sparkleGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                sparkle.connect(sparkleGain);
+                sparkleGain.connect(this.masterGain);
+                sparkle.start(now);
+                sparkle.stop(now + 0.1);
+            }
         },
 
         // ============================================
-        // VAMPIRE KILLER - 8-bit Castlevania Soundtrack
+        // CHRISTMAS MUSIC SYSTEM - Title & Gameplay
         // ============================================
         musicPlaying: false,
         musicTimeout: null,
         musicGain: null,
+        currentTrack: 'title', // 'title' or 'gameplay'
 
-        // Note frequencies (Hz)
+        // Note frequencies (Hz) - Extended for Christmas songs
         NOTE: {
+            // Octave 3
             C3: 130.81, D3: 146.83, E3: 164.81, F3: 174.61, G3: 196.00, A3: 220.00, B3: 246.94,
+            Bb3: 233.08, Fs3: 185.00,
+            // Octave 4
             C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.00, A4: 440.00, B4: 493.88,
+            Bb4: 466.16, Fs4: 369.99, Gs4: 415.30,
+            // Octave 5
             C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, A5: 880.00, B5: 987.77,
-            Fs4: 369.99, Gs4: 415.30, As4: 466.16, Ds5: 622.25, Cs5: 554.37,
-            Fs3: 185.00, Gs3: 207.65, As3: 233.08
+            Bb5: 932.33
         },
 
-        startMusic() {
-            if (!this.initialized || this.musicPlaying) return;
+        // Start title screen music
+        startTitleMusic() {
+            if (!this.initialized) return;
+            this.stopMusic();
             this.resume();
             this.musicPlaying = true;
-            this.currentSection = 0; // Start from beginning
+            this.currentTrack = 'title';
+            this.currentSection = 0;
 
             this.musicGain = this.audioContext.createGain();
-            this.musicGain.gain.value = 0.15;
+            this.musicGain.gain.value = 0.10;
             this.musicGain.connect(this.masterGain);
 
-            this.playVampireKillerLoop();
+            this.playTitleMusicLoop();
+        },
+
+        // Start gameplay music (Jingle Bells)
+        startMusic() {
+            if (!this.initialized) return;
+            this.stopMusic();
+            this.resume();
+            this.musicPlaying = true;
+            this.currentTrack = 'gameplay';
+            this.currentSection = 0;
+
+            this.musicGain = this.audioContext.createGain();
+            this.musicGain.gain.value = 0.12;
+            this.musicGain.connect(this.masterGain);
+
+            this.playChristmasMusicLoop();
         },
 
         stopMusic() {
@@ -478,30 +571,246 @@
             }
         },
 
-        // Play a square wave note (8-bit style)
-        playSquareNote(freq, duration, startTime, channel = 1) {
+        // Title Screen Music - "We Wish You a Merry Christmas" style melody
+        playTitleMusicLoop() {
+            if (!this.initialized || !this.musicPlaying || this.currentTrack !== 'title') return;
+
+            const BPM = 120;
+            const eighth = 60 / BPM / 2;
+            const quarter = 60 / BPM;
+            const half = quarter * 2;
+            const dottedQuarter = quarter * 1.5;
+            const now = this.audioContext.currentTime;
+            const N = this.NOTE;
+
+            const section = this.currentSection % 2;
+            this.currentSection++;
+
+            let melody, harmony, bass, sectionBars;
+
+            if (section === 0) {
+                // Main melody - cheerful Christmas tune
+                melody = [
+                    [N.G4, quarter], [N.C5, quarter], [N.C5, eighth], [N.D5, eighth],
+                    [N.C5, eighth], [N.B4, eighth], [N.A4, quarter], [N.A4, quarter],
+                    [N.A4, quarter], [N.D5, quarter], [N.D5, eighth], [N.E5, eighth],
+                    [N.D5, eighth], [N.C5, eighth], [N.B4, quarter], [N.G4, quarter],
+                    [N.G4, quarter], [N.E5, quarter], [N.E5, eighth], [N.F5, eighth],
+                    [N.E5, eighth], [N.D5, eighth], [N.C5, quarter], [N.A4, quarter],
+                    [N.G4, eighth], [N.G4, eighth], [N.A4, quarter], [N.D5, quarter],
+                    [N.B4, quarter], [N.C5, half]
+                ];
+                harmony = [
+                    [N.E4, quarter], [N.G4, quarter], [N.G4, eighth], [N.A4, eighth],
+                    [N.G4, eighth], [N.F4, eighth], [N.E4, quarter], [N.E4, quarter],
+                    [N.F4, quarter], [N.A4, quarter], [N.A4, eighth], [N.B4, eighth],
+                    [N.A4, eighth], [N.G4, eighth], [N.F4, quarter], [N.D4, quarter],
+                    [N.E4, quarter], [N.C5, quarter], [N.C5, eighth], [N.D5, eighth],
+                    [N.C5, eighth], [N.B4, eighth], [N.A4, quarter], [N.F4, quarter],
+                    [N.E4, eighth], [N.E4, eighth], [N.F4, quarter], [N.A4, quarter],
+                    [N.G4, quarter], [N.E4, half]
+                ];
+                bass = [
+                    N.C3, N.C3, N.C3, N.C3, N.F3, N.F3, N.F3, N.F3,
+                    N.D3, N.D3, N.D3, N.D3, N.G3, N.G3, N.G3, N.G3,
+                    N.C3, N.C3, N.C3, N.C3, N.F3, N.F3, N.F3, N.F3,
+                    N.G3, N.G3, N.G3, N.G3, N.C3, N.C3, N.C3, N.C3
+                ];
+                sectionBars = 8;
+            } else {
+                // Variation - gentle arpeggio section
+                melody = [
+                    [N.C4, eighth], [N.E4, eighth], [N.G4, eighth], [N.C5, eighth],
+                    [N.G4, quarter], [N.E4, quarter],
+                    [N.D4, eighth], [N.F4, eighth], [N.A4, eighth], [N.D5, eighth],
+                    [N.A4, quarter], [N.F4, quarter],
+                    [N.E4, eighth], [N.G4, eighth], [N.B4, eighth], [N.E5, eighth],
+                    [N.D5, quarter], [N.C5, quarter],
+                    [N.G4, quarter], [N.F4, quarter], [N.E4, quarter], [N.D4, quarter],
+                    [N.C4, half], [0, half]
+                ];
+                harmony = [
+                    [N.G3, eighth], [N.C4, eighth], [N.E4, eighth], [N.G4, eighth],
+                    [N.E4, quarter], [N.C4, quarter],
+                    [N.A3, eighth], [N.D4, eighth], [N.F4, eighth], [N.A4, eighth],
+                    [N.F4, quarter], [N.D4, quarter],
+                    [N.B3, eighth], [N.E4, eighth], [N.G4, eighth], [N.B4, eighth],
+                    [N.A4, quarter], [N.G4, quarter],
+                    [N.E4, quarter], [N.D4, quarter], [N.C4, quarter], [N.B3, quarter],
+                    [N.G3, half], [0, half]
+                ];
+                bass = [
+                    N.C3, N.C3, N.G3, N.G3, N.C3, N.C3, N.G3, N.G3,
+                    N.D3, N.D3, N.A3, N.A3, N.D3, N.D3, N.A3, N.A3,
+                    N.E3, N.E3, N.B3, N.B3, N.E3, N.G3, N.A3, N.B3,
+                    N.C3, N.E3, N.G3, N.C3, N.C3, N.C3, N.C3, N.C3
+                ];
+                sectionBars = 8;
+            }
+
+            // Play melody with soft bells
+            let melodyTime = now + 0.05;
+            melody.forEach(([note, dur]) => {
+                if (note > 0) {
+                    this.playTitleNote(note, dur * 0.9, melodyTime, 1);
+                }
+                melodyTime += dur;
+            });
+
+            // Play harmony
+            let harmonyTime = now + 0.05;
+            harmony.forEach(([note, dur]) => {
+                if (note > 0) {
+                    this.playTitleNote(note, dur * 0.85, harmonyTime, 2);
+                }
+                harmonyTime += dur;
+            });
+
+            // Play soft bass
+            let bassTime = now + 0.05;
+            bass.forEach((note) => {
+                if (note > 0) {
+                    this.playBassNote(note, quarter * 0.8, bassTime);
+                }
+                bassTime += quarter;
+            });
+
+            // Gentle bells only on downbeats
+            let bellTime = now + 0.05;
+            for (let i = 0; i < sectionBars * 2; i++) {
+                if (i % 2 === 0) {
+                    this.playSoftBell(bellTime);
+                }
+                bellTime += half;
+            }
+
+            // Loop
+            const loopDuration = (quarter * sectionBars * 4) * 1000;
+            this.musicTimeout = setTimeout(() => {
+                if (this.musicPlaying && this.currentTrack === 'title') {
+                    this.playTitleMusicLoop();
+                }
+            }, loopDuration - 50);
+        },
+
+        // Soft title screen note
+        playTitleNote(freq, duration, startTime, channel = 1) {
             if (!this.initialized || !this.musicPlaying) return;
 
             const osc = this.audioContext.createOscillator();
             const gain = this.audioContext.createGain();
 
-            osc.type = 'square';
+            osc.type = 'sine'; // Softer sine waves for title
             osc.frequency.value = freq;
 
-            // Slight detune for channel 2 (richer sound)
             if (channel === 2) {
                 osc.detune.value = 5;
+                gain.gain.setValueAtTime(0, startTime);
+                gain.gain.linearRampToValueAtTime(0.08, startTime + 0.02);
+            } else {
+                gain.gain.setValueAtTime(0, startTime);
+                gain.gain.linearRampToValueAtTime(0.12, startTime + 0.01);
             }
 
-            gain.gain.setValueAtTime(0.12, startTime);
-            gain.gain.setValueAtTime(0.1, startTime + duration * 0.1);
-            gain.gain.setValueAtTime(0, startTime + duration - 0.01);
+            gain.gain.setValueAtTime(gain.gain.value, startTime + duration * 0.7);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
 
             osc.connect(gain);
             gain.connect(this.musicGain);
 
             osc.start(startTime);
             osc.stop(startTime + duration);
+        },
+
+        // Soft bell for title screen
+        playSoftBell(startTime) {
+            if (!this.initialized || !this.musicPlaying) return;
+
+            const osc = this.audioContext.createOscillator();
+            const gain = this.audioContext.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.value = 1200 + Math.random() * 400;
+
+            gain.gain.setValueAtTime(0.03, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3);
+
+            osc.connect(gain);
+            gain.connect(this.musicGain);
+
+            osc.start(startTime);
+            osc.stop(startTime + 0.3);
+        },
+
+        // Play a square wave note (8-bit style) with vibrato for bells
+        playSquareNote(freq, duration, startTime, channel = 1, vibrato = false) {
+            if (!this.initialized || !this.musicPlaying) return;
+
+            const osc = this.audioContext.createOscillator();
+            const gain = this.audioContext.createGain();
+
+            osc.type = channel === 1 ? 'square' : 'pulse' in osc ? 'pulse' : 'square';
+            osc.frequency.value = freq;
+
+            if (channel === 2) {
+                osc.detune.value = 7; // Slight detune for richness
+            }
+
+            // Add subtle vibrato for bell-like quality
+            if (vibrato) {
+                const lfo = this.audioContext.createOscillator();
+                const lfoGain = this.audioContext.createGain();
+                lfo.frequency.value = 5;
+                lfoGain.gain.value = 3;
+                lfo.connect(lfoGain);
+                lfoGain.connect(osc.detune);
+                lfo.start(startTime);
+                lfo.stop(startTime + duration);
+            }
+
+            // Bell-like envelope
+            gain.gain.setValueAtTime(0, startTime);
+            gain.gain.linearRampToValueAtTime(0.15, startTime + 0.01);
+            gain.gain.setValueAtTime(0.12, startTime + duration * 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+            osc.connect(gain);
+            gain.connect(this.musicGain);
+
+            osc.start(startTime);
+            osc.stop(startTime + duration);
+        },
+
+        // Play sleigh bell sound
+        playSleighBell(startTime) {
+            if (!this.initialized || !this.musicPlaying) return;
+
+            const bufferSize = this.audioContext.sampleRate * 0.08;
+            const buffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate);
+            const data = buffer.getChannelData(0);
+
+            for (let i = 0; i < bufferSize; i++) {
+                const env = Math.exp(-i / (bufferSize * 0.3));
+                data[i] = (Math.random() * 2 - 1) * env;
+            }
+
+            const noise = this.audioContext.createBufferSource();
+            noise.buffer = buffer;
+
+            const filter = this.audioContext.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.value = 8000;
+            filter.Q.value = 2;
+
+            const gain = this.audioContext.createGain();
+            gain.gain.value = 0.06;
+
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.musicGain);
+
+            noise.start(startTime);
+            noise.stop(startTime + 0.08);
         },
 
         // Play triangle wave bass note
@@ -514,8 +823,8 @@
             osc.type = 'triangle';
             osc.frequency.value = freq;
 
-            gain.gain.setValueAtTime(0.15, startTime);
-            gain.gain.setValueAtTime(0, startTime + duration - 0.01);
+            gain.gain.setValueAtTime(0.18, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
 
             osc.connect(gain);
             gain.connect(this.musicGain);
@@ -524,16 +833,17 @@
             osc.stop(startTime + duration);
         },
 
-        // Play noise drum hit
+        // Play kick/snare drum
         playDrum(startTime, isKick) {
             if (!this.initialized || !this.musicPlaying) return;
 
-            const bufferSize = this.audioContext.sampleRate * 0.05;
+            const bufferSize = this.audioContext.sampleRate * 0.08;
             const buffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate);
             const data = buffer.getChannelData(0);
 
             for (let i = 0; i < bufferSize; i++) {
-                data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+                const env = Math.exp(-i / (bufferSize * (isKick ? 0.15 : 0.08)));
+                data[i] = (Math.random() * 2 - 1) * env;
             }
 
             const noise = this.audioContext.createBufferSource();
@@ -541,169 +851,180 @@
 
             const filter = this.audioContext.createBiquadFilter();
             filter.type = isKick ? 'lowpass' : 'highpass';
-            filter.frequency.value = isKick ? 150 : 5000;
+            filter.frequency.value = isKick ? 200 : 6000;
 
             const gain = this.audioContext.createGain();
-            gain.gain.value = isKick ? 0.2 : 0.08;
+            gain.gain.value = isKick ? 0.15 : 0.05;
 
             noise.connect(filter);
             filter.connect(gain);
             gain.connect(this.musicGain);
 
             noise.start(startTime);
-            noise.stop(startTime + 0.05);
+            noise.stop(startTime + 0.08);
         },
 
-        // Track which section we're on
         currentSection: 0,
 
-        // Main Vampire Killer loop - full song with multiple sections
-        playVampireKillerLoop() {
+        // Main Christmas Music Loop - Jingle Bells with variations
+        playChristmasMusicLoop() {
             if (!this.initialized || !this.musicPlaying) return;
 
-            const BPM = 150;
+            const BPM = 140;
             const sixteenth = 60 / BPM / 4;
             const eighth = 60 / BPM / 2;
             const quarter = 60 / BPM;
             const half = quarter * 2;
+            const whole = quarter * 4;
             const now = this.audioContext.currentTime;
             const N = this.NOTE;
 
-            // Cycle through different sections for variety
             const section = this.currentSection % 4;
             this.currentSection++;
 
-            let melody, bass, sectionBars;
+            let melody, harmony, bass, sectionBars;
 
-            if (section === 0) {
-                // ===== SECTION A: Main Theme (4 bars) =====
+            if (section === 0 || section === 2) {
+                // ===== JINGLE BELLS - Main Chorus =====
+                // "Jingle bells, jingle bells, jingle all the way"
                 melody = [
-                    // Bar 1 - iconic opening
-                    [N.C5, eighth], [N.B4, eighth], [N.C5, eighth], [N.As4, eighth],
-                    [N.G4, eighth], [N.A4, eighth], [N.G4, eighth], [N.Fs4, eighth],
-                    // Bar 2
-                    [N.G4, eighth], [N.F4, eighth], [N.G4, eighth], [N.E4, eighth],
-                    [N.C4, eighth], [N.D4, eighth], [N.E4, quarter],
-                    // Bar 3 - repeat with variation
-                    [N.C5, eighth], [N.B4, eighth], [N.C5, eighth], [N.As4, eighth],
-                    [N.G4, eighth], [N.A4, eighth], [N.G4, eighth], [N.Fs4, eighth],
-                    // Bar 4 - resolution
-                    [N.G4, eighth], [N.F4, eighth], [N.E4, eighth], [N.D4, eighth],
-                    [N.C4, quarter], [0, quarter]
+                    // Bar 1: "Jin-gle bells"
+                    [N.E4, quarter], [N.E4, quarter], [N.E4, half],
+                    // Bar 2: "Jin-gle bells"
+                    [N.E4, quarter], [N.E4, quarter], [N.E4, half],
+                    // Bar 3: "Jin-gle all the way"
+                    [N.E4, quarter], [N.G4, quarter], [N.C4, quarter], [N.D4, quarter],
+                    // Bar 4: "way" (held) + rest
+                    [N.E4, half + quarter], [0, quarter],
+                    // Bar 5: "Oh what fun"
+                    [N.F4, quarter], [N.F4, quarter], [N.F4, quarter], [N.F4, eighth], [N.F4, eighth],
+                    // Bar 6: "it is to ride"
+                    [N.F4, quarter], [N.E4, quarter], [N.E4, quarter], [N.E4, eighth], [N.E4, eighth],
+                    // Bar 7: "in a one horse"
+                    [N.E4, quarter], [N.D4, quarter], [N.D4, quarter], [N.E4, quarter],
+                    // Bar 8: "open sleigh" -> G
+                    [N.D4, half], [N.G4, half]
                 ];
-                bass = [N.C3, N.G3, N.As3, N.G3, N.C3, N.G3, N.As3, N.G3,
-                        N.C3, N.G3, N.F3, N.E3, N.C3, N.G3, N.F3, N.E3];
-                sectionBars = 4;
+                harmony = [
+                    [N.C4, quarter], [N.C4, quarter], [N.C4, half],
+                    [N.C4, quarter], [N.C4, quarter], [N.C4, half],
+                    [N.C4, quarter], [N.E4, quarter], [N.G3, quarter], [N.B3, quarter],
+                    [N.C4, half + quarter], [0, quarter],
+                    [N.D4, quarter], [N.D4, quarter], [N.D4, quarter], [N.D4, eighth], [N.D4, eighth],
+                    [N.D4, quarter], [N.C4, quarter], [N.C4, quarter], [N.C4, eighth], [N.C4, eighth],
+                    [N.C4, quarter], [N.B3, quarter], [N.B3, quarter], [N.C4, quarter],
+                    [N.B3, half], [N.D4, half]
+                ];
+                bass = [
+                    N.C3, N.C3, N.C3, N.C3, N.C3, N.C3, N.C3, N.C3,
+                    N.C3, N.E3, N.F3, N.G3, N.C3, N.C3, N.G3, N.G3,
+                    N.F3, N.F3, N.F3, N.F3, N.F3, N.C3, N.C3, N.C3,
+                    N.G3, N.G3, N.G3, N.C3, N.G3, N.G3, N.G3, N.G3
+                ];
+                sectionBars = 8;
 
             } else if (section === 1) {
-                // ===== SECTION B: Rising Tension (4 bars) =====
+                // ===== JINGLE BELLS - Verse (Dashing through the snow) =====
                 melody = [
-                    // Bar 1 - ascending run
-                    [N.E4, eighth], [N.F4, eighth], [N.G4, eighth], [N.A4, eighth],
-                    [N.B4, eighth], [N.C5, eighth], [N.D5, eighth], [N.E5, eighth],
-                    // Bar 2 - descending
-                    [N.E5, eighth], [N.D5, eighth], [N.C5, eighth], [N.B4, eighth],
-                    [N.A4, eighth], [N.G4, eighth], [N.F4, quarter],
-                    // Bar 3 - dramatic
-                    [N.G4, eighth], [N.G4, eighth], [N.A4, eighth], [N.A4, eighth],
-                    [N.B4, eighth], [N.B4, eighth], [N.C5, quarter],
-                    // Bar 4 - resolve
-                    [N.C5, eighth], [N.B4, eighth], [N.A4, eighth], [N.G4, eighth],
-                    [N.F4, eighth], [N.E4, eighth], [N.D4, quarter]
-                ];
-                bass = [N.A3, N.E3, N.A3, N.E3, N.G3, N.D3, N.G3, N.D3,
-                        N.F3, N.C3, N.F3, N.C3, N.G3, N.D3, N.G3, N.D3];
-                sectionBars = 4;
-
-            } else if (section === 2) {
-                // ===== SECTION C: Bridge - Darker (4 bars) =====
-                melody = [
-                    // Bar 1 - minor feel
-                    [N.A4, quarter], [N.G4, eighth], [N.F4, eighth],
+                    // "Dashing through the snow"
+                    [N.E4, eighth], [N.E4, eighth], [N.E4, eighth], [N.E4, eighth],
                     [N.E4, quarter], [N.D4, quarter],
-                    // Bar 2
-                    [N.C4, eighth], [N.D4, eighth], [N.E4, eighth], [N.F4, eighth],
-                    [N.G4, half],
-                    // Bar 3 - building
-                    [N.A4, eighth], [N.B4, eighth], [N.C5, eighth], [N.D5, eighth],
-                    [N.E5, quarter], [N.D5, quarter],
-                    // Bar 4 - transition
-                    [N.C5, eighth], [N.B4, eighth], [N.A4, eighth], [N.G4, eighth],
-                    [N.F4, eighth], [N.E4, eighth], [N.D4, eighth], [N.C4, eighth]
+                    // "In a one horse open sleigh"
+                    [N.D4, eighth], [N.D4, eighth], [N.D4, eighth], [N.D4, eighth],
+                    [N.E4, quarter], [N.D4, quarter],
+                    // "O'er the fields we go"
+                    [N.E4, eighth], [N.E4, eighth], [N.E4, eighth], [N.E4, eighth],
+                    [N.E4, quarter], [N.D4, quarter],
+                    // "Laughing all the way"
+                    [N.E4, quarter], [N.D4, quarter], [N.C4, half]
                 ];
-                bass = [N.A3, N.A3, N.E3, N.E3, N.F3, N.F3, N.G3, N.G3,
-                        N.A3, N.A3, N.E3, N.E3, N.F3, N.G3, N.A3, N.C3];
+                harmony = [
+                    [N.C4, eighth], [N.C4, eighth], [N.C4, eighth], [N.C4, eighth],
+                    [N.C4, quarter], [N.B3, quarter],
+                    [N.B3, eighth], [N.B3, eighth], [N.B3, eighth], [N.B3, eighth],
+                    [N.C4, quarter], [N.B3, quarter],
+                    [N.C4, eighth], [N.C4, eighth], [N.C4, eighth], [N.C4, eighth],
+                    [N.C4, quarter], [N.B3, quarter],
+                    [N.C4, quarter], [N.B3, quarter], [N.G3, half]
+                ];
+                bass = [
+                    N.C3, N.C3, N.G3, N.G3, N.C3, N.C3, N.G3, N.G3,
+                    N.G3, N.G3, N.D3, N.D3, N.G3, N.G3, N.G3, N.G3,
+                    N.C3, N.C3, N.G3, N.G3, N.F3, N.F3, N.G3, N.G3,
+                    N.C3, N.G3, N.C3, N.C3
+                ];
                 sectionBars = 4;
 
             } else {
-                // ===== SECTION D: Climax - Fast arpeggios (4 bars) =====
+                // ===== VARIATION - Arpeggiated/Festive Bridge =====
                 melody = [
-                    // Bar 1 - fast arpeggios
+                    // Arpeggio runs
                     [N.C4, sixteenth], [N.E4, sixteenth], [N.G4, sixteenth], [N.C5, sixteenth],
-                    [N.G4, sixteenth], [N.E4, sixteenth], [N.C4, sixteenth], [N.E4, sixteenth],
+                    [N.E5, quarter], [N.D5, quarter],
                     [N.D4, sixteenth], [N.F4, sixteenth], [N.A4, sixteenth], [N.D5, sixteenth],
-                    [N.A4, sixteenth], [N.F4, sixteenth], [N.D4, sixteenth], [N.F4, sixteenth],
-                    // Bar 2
-                    [N.E4, sixteenth], [N.G4, sixteenth], [N.B4, sixteenth], [N.E5, sixteenth],
-                    [N.B4, sixteenth], [N.G4, sixteenth], [N.E4, sixteenth], [N.G4, sixteenth],
-                    [N.C5, eighth], [N.B4, eighth], [N.A4, eighth], [N.G4, eighth],
-                    // Bar 3 - power chords feel
-                    [N.C5, quarter], [N.C5, eighth], [N.As4, eighth],
-                    [N.G4, quarter], [N.G4, eighth], [N.F4, eighth],
-                    // Bar 4 - big finish to loop
-                    [N.E4, eighth], [N.F4, eighth], [N.G4, eighth], [N.A4, eighth],
-                    [N.B4, eighth], [N.C5, eighth], [N.D5, eighth], [N.C5, eighth]
+                    [N.F5, quarter], [N.E5, quarter],
+                    // Descending
+                    [N.E5, eighth], [N.D5, eighth], [N.C5, eighth], [N.B4, eighth],
+                    [N.A4, eighth], [N.G4, eighth], [N.F4, eighth], [N.E4, eighth],
+                    // Big finish
+                    [N.C5, quarter], [N.G4, quarter], [N.E4, quarter], [N.C4, quarter]
                 ];
-                bass = [N.C3, N.C3, N.G3, N.G3, N.D3, N.D3, N.A3, N.A3,
-                        N.E3, N.E3, N.B3, N.B3, N.C3, N.G3, N.C3, N.G3];
+                harmony = [
+                    [N.G3, sixteenth], [N.C4, sixteenth], [N.E4, sixteenth], [N.G4, sixteenth],
+                    [N.C5, quarter], [N.B4, quarter],
+                    [N.A3, sixteenth], [N.D4, sixteenth], [N.F4, sixteenth], [N.A4, sixteenth],
+                    [N.D5, quarter], [N.C5, quarter],
+                    [N.C5, eighth], [N.B4, eighth], [N.A4, eighth], [N.G4, eighth],
+                    [N.F4, eighth], [N.E4, eighth], [N.D4, eighth], [N.C4, eighth],
+                    [N.E4, quarter], [N.E4, quarter], [N.C4, quarter], [N.G3, quarter]
+                ];
+                bass = [
+                    N.C3, N.C3, N.G3, N.G3, N.C3, N.C3, N.G3, N.G3,
+                    N.D3, N.D3, N.A3, N.A3, N.D3, N.D3, N.A3, N.A3,
+                    N.E3, N.E3, N.A3, N.A3, N.F3, N.G3, N.A3, N.B3,
+                    N.C3, N.E3, N.G3, N.C3
+                ];
                 sectionBars = 4;
             }
 
-            // Play melody
-            let melodyTime = now + 0.1;
+            // Play melody with bell-like vibrato
+            let melodyTime = now + 0.05;
             melody.forEach(([note, dur]) => {
                 if (note > 0) {
-                    this.playSquareNote(note, dur * 0.9, melodyTime, 1);
+                    this.playSquareNote(note, dur * 0.92, melodyTime, 1, true);
                 }
                 melodyTime += dur;
             });
 
-            // Play counter-melody (harmony) on section 1 and 3
-            if (section === 1 || section === 3) {
-                let harmonyTime = now + 0.1;
-                melody.forEach(([note, dur]) => {
-                    if (note > 0) {
-                        // Play a third below
-                        this.playSquareNote(note * 0.8, dur * 0.85, harmonyTime, 2);
-                    }
-                    harmonyTime += dur;
-                });
-            }
-
-            // Play bass
-            let bassTime = now + 0.1;
-            bass.forEach((note) => {
-                this.playBassNote(note, quarter * 0.85, bassTime);
-                bassTime += quarter;
+            // Play harmony
+            let harmonyTime = now + 0.05;
+            harmony.forEach(([note, dur]) => {
+                if (note > 0) {
+                    this.playSquareNote(note, dur * 0.88, harmonyTime, 2, false);
+                }
+                harmonyTime += dur;
             });
 
-            // Play drums with variation
-            let drumTime = now + 0.1;
-            const drumBars = sectionBars * 8; // 8 eighth notes per bar
-            for (let i = 0; i < drumBars; i++) {
-                // Kick pattern varies by section
-                if (section === 3) {
-                    // Fast section - double time kick
-                    if (i % 2 === 0) this.playDrum(drumTime, true);
-                } else {
-                    // Normal kick on 1 and 3
-                    if (i % 4 === 0 || i % 4 === 2) this.playDrum(drumTime, true);
+            // Play bass
+            let bassTime = now + 0.05;
+            const bassNoteDur = quarter;
+            bass.forEach((note) => {
+                if (note > 0) {
+                    this.playBassNote(note, bassNoteDur * 0.9, bassTime);
                 }
+                bassTime += bassNoteDur;
+            });
 
-                // Snare on 2 and 4
-                if (i % 4 === 1 || i % 4 === 3) {
-                    this.playDrum(drumTime, false);
-                }
+            // Play drums - festive pattern with sleigh bells
+            let drumTime = now + 0.05;
+            const totalEighths = sectionBars * 8;
+            for (let i = 0; i < totalEighths; i++) {
+                // Kick on beats 1 and 3
+                if (i % 4 === 0) this.playDrum(drumTime, true);
+                // Snare on beats 2 and 4
+                if (i % 4 === 2) this.playDrum(drumTime, false);
+                // Sleigh bells on every eighth note (Christmas feel!)
+                this.playSleighBell(drumTime);
 
                 drumTime += eighth;
             }
@@ -712,68 +1033,169 @@
             const loopDuration = (quarter * sectionBars * 4) * 1000;
             this.musicTimeout = setTimeout(() => {
                 if (this.musicPlaying) {
-                    this.playVampireKillerLoop();
+                    this.playChristmasMusicLoop();
                 }
             }, loopDuration - 50);
         }
     };
 
-    // Projectile configurations
+    // Projectile configurations - Enhanced with more variety and effects
     const PROJECTILES = {
         coal: {
-            size: 20,
+            size: 18,
             density: 0.006,
-            restitution: 0.5,
+            restitution: 0.4,
             color: '#1f2937',
-            borderColor: '#374151',
+            borderColor: '#4b5563',
+            glowColor: 'rgba(239, 68, 68, 0.6)',
             impactForce: 0.015,
-            shape: 'circle'
+            shape: 'circle',
+            trail: true,
+            trailColor: 'rgba(239, 68, 68, 0.4)',
+            particleColor: '#ef4444',
+            description: 'Burning coal'
         },
         iceball: {
             size: 16,
             density: 0.004,
             restitution: 0.7,
             color: '#67e8f9',
-            borderColor: '#22d3ee',
+            borderColor: '#06b6d4',
+            glowColor: 'rgba(6, 182, 212, 0.5)',
             impactForce: 0.012,
-            shape: 'circle'
+            shape: 'circle',
+            trail: true,
+            trailColor: 'rgba(103, 232, 249, 0.5)',
+            particleColor: '#a5f3fc',
+            sparkle: true,
+            description: 'Frozen iceball'
         },
         snowball: {
-            size: 24,
+            size: 22,
             density: 0.002,
             restitution: 0.3,
-            color: '#f1f5f9',
-            borderColor: '#e2e8f0',
+            color: '#f8fafc',
+            borderColor: '#cbd5e1',
+            glowColor: 'rgba(255, 255, 255, 0.4)',
             impactForce: 0.008,
-            shape: 'circle'
+            shape: 'circle',
+            trail: true,
+            trailColor: 'rgba(255, 255, 255, 0.6)',
+            particleColor: '#ffffff',
+            description: 'Fluffy snowball'
         },
         hailstone: {
-            size: 14,
-            density: 0.008,
-            restitution: 0.6,
-            color: '#a5f3fc',
-            borderColor: '#67e8f9',
-            impactForce: 0.018,
-            shape: 'polygon'
+            size: 12,
+            density: 0.009,
+            restitution: 0.65,
+            color: '#e0f2fe',
+            borderColor: '#7dd3fc',
+            glowColor: 'rgba(125, 211, 252, 0.5)',
+            impactForce: 0.02,
+            shape: 'polygon',
+            sides: 6,
+            trail: true,
+            trailColor: 'rgba(186, 230, 253, 0.4)',
+            particleColor: '#bae6fd',
+            sparkle: true,
+            description: 'Sharp hailstone'
         },
         candycane: {
-            size: 12,
+            size: 14,
             density: 0.005,
-            restitution: 0.4,
-            color: '#ef4444',
+            restitution: 0.35,
+            color: '#dc2626',
             borderColor: '#ffffff',
+            glowColor: 'rgba(220, 38, 38, 0.4)',
             impactForce: 0.014,
-            shape: 'rectangle'
+            shape: 'rectangle',
+            stripes: true,
+            trail: false,
+            particleColor: '#fecaca',
+            description: 'Candy cane'
         },
         ornament: {
-            size: 18,
+            size: 20,
             density: 0.003,
-            restitution: 0.8,
-            color: '#fbbf24',
-            borderColor: '#f59e0b',
+            restitution: 0.75,
+            color: '#dc2626',
+            borderColor: '#fbbf24',
+            glowColor: 'rgba(251, 191, 36, 0.6)',
             impactForce: 0.01,
-            shape: 'circle'
+            shape: 'circle',
+            shiny: true,
+            trail: true,
+            trailColor: 'rgba(251, 191, 36, 0.5)',
+            particleColor: '#fde047',
+            sparkle: true,
+            description: 'Christmas ornament'
+        },
+        giftbox: {
+            size: 18,
+            density: 0.007,
+            restitution: 0.3,
+            color: '#22c55e',
+            borderColor: '#dc2626',
+            glowColor: 'rgba(34, 197, 94, 0.4)',
+            impactForce: 0.016,
+            shape: 'rectangle',
+            ribbon: true,
+            trail: false,
+            particleColor: '#86efac',
+            description: 'Gift box'
+        },
+        star: {
+            size: 16,
+            density: 0.004,
+            restitution: 0.5,
+            color: '#fbbf24',
+            borderColor: '#fef08a',
+            glowColor: 'rgba(251, 191, 36, 0.7)',
+            impactForce: 0.013,
+            shape: 'polygon',
+            sides: 5,
+            trail: true,
+            trailColor: 'rgba(254, 240, 138, 0.6)',
+            particleColor: '#fef08a',
+            sparkle: true,
+            spin: true,
+            description: 'Christmas star'
+        },
+        icicle: {
+            size: 20,
+            density: 0.006,
+            restitution: 0.4,
+            color: '#e0f2fe',
+            borderColor: '#38bdf8',
+            glowColor: 'rgba(56, 189, 248, 0.5)',
+            impactForce: 0.018,
+            shape: 'triangle',
+            trail: true,
+            trailColor: 'rgba(186, 230, 253, 0.5)',
+            particleColor: '#bae6fd',
+            sparkle: true,
+            description: 'Sharp icicle'
+        },
+        mistletoe: {
+            size: 15,
+            density: 0.003,
+            restitution: 0.6,
+            color: '#16a34a',
+            borderColor: '#dc2626',
+            glowColor: 'rgba(22, 163, 74, 0.4)',
+            impactForce: 0.009,
+            shape: 'circle',
+            berries: true,
+            trail: false,
+            particleColor: '#bbf7d0',
+            description: 'Mistletoe'
         }
+    };
+
+    // Projectile visual effects state
+    const projectileEffects = {
+        trails: [], // Store trail particles
+        sparkles: [] // Store sparkle effects
     };
 
     // Game state
@@ -858,7 +1280,7 @@
         state.platformTargetX = state.canvasWidth / 2;
         state.platformLastX = state.canvasWidth / 2;
 
-        // Initialize sound system (requires user interaction to start)
+        // Initialize sound system
         SoundSystem.init();
     }
 
@@ -1325,6 +1747,67 @@
 
         // Collision detection
         Events.on(state.engine, 'collisionStart', handleCollision);
+        Events.on(state.engine, 'collisionEnd', handleCollisionEnd);
+    }
+
+    // Handle collision end - make blocks non-sticky when detached from stack
+    function handleCollisionEnd(event) {
+        const pairs = event.pairs;
+
+        pairs.forEach(pair => {
+            const { bodyA, bodyB } = pair;
+
+            // Check if a stacked block lost contact with the platform or another block
+            if (isBlock(bodyA) && bodyA.hasLanded) {
+                checkBlockDetachment(bodyA);
+            }
+            if (isBlock(bodyB) && bodyB.hasLanded) {
+                checkBlockDetachment(bodyB);
+            }
+        });
+    }
+
+    // Check if a block is detached from the stack and make it non-sticky
+    function checkBlockDetachment(block) {
+        // Skip locked blocks - they should remain stable
+        if (state.lockedBlocks.has(block.id)) return;
+
+        const platformTop = state.platform.position.y - CONFIG.platformHeight / 2;
+        const platformLeft = state.platform.position.x - CONFIG.platformWidth / 2;
+        const platformRight = state.platform.position.x + CONFIG.platformWidth / 2;
+
+        // Check if block is still above/on platform area
+        const blockX = block.position.x;
+        const blockBottom = block.bounds.max.y;
+        const isAbovePlatform = blockX >= platformLeft - 50 &&
+                                blockX <= platformRight + 50 &&
+                                blockBottom <= platformTop + 100;
+
+        // Check if block is touching any other stacked block
+        let touchingStack = false;
+        for (const otherBlock of state.stackedBlocks) {
+            if (otherBlock === block) continue;
+            const bounds = block.bounds;
+            const otherBounds = otherBlock.bounds;
+
+            // Simple AABB overlap check with tolerance
+            const touching = !(bounds.max.x < otherBounds.min.x - 5 ||
+                             bounds.min.x > otherBounds.max.x + 5 ||
+                             bounds.max.y < otherBounds.min.y - 5 ||
+                             bounds.min.y > otherBounds.max.y + 5);
+            if (touching) {
+                touchingStack = true;
+                break;
+            }
+        }
+
+        // If block is not above platform and not touching any other blocks, make it non-sticky
+        if (!isAbovePlatform && !touchingStack) {
+            // Reduce friction so it slides off
+            block.friction = 0.1;
+            block.frictionStatic = 0.2;
+            block.frictionAir = 0.01;
+        }
     }
 
     // Handle mouse movement - controls platform (only when dragging or mouse is down)
@@ -1390,10 +1873,9 @@
         state.gameStarted = true;
         elements.instructions.classList.add('hidden');
 
-        // Start ambient sounds and music
+        // Start ambient sounds (music is now in global jukebox)
         SoundSystem.resume();
         SoundSystem.startAmbientWind();
-        SoundSystem.startMusic(); // Start Vampire Killer soundtrack!
 
         // Start dropping blocks
         spawnNextBlock();
@@ -1437,7 +1919,6 @@
         const platformRight = state.platform.position.x + CONFIG.platformWidth / 2;
 
         state.stackedBlocks.forEach(block => {
-            const blockBottom = block.bounds.max.y;
             const blockX = block.position.x;
 
             // Check if block is above platform area (stacked)
@@ -1452,11 +1933,26 @@
                     y: block.position.y
                 });
 
-                // Also set velocity to match platform movement for physics continuity
+                // Don't add velocity - position change is enough
+                // This prevents momentum buildup that causes blocks to fly off
+            }
+        });
+    }
+
+    // Stabilize stacked blocks by damping their velocities
+    function stabilizeStack() {
+        state.stackedBlocks.forEach(block => {
+            // Dampen horizontal velocity significantly for stability
+            if (Math.abs(block.velocity.x) > 0.5) {
                 Body.setVelocity(block, {
-                    x: state.platformVelocity * 0.5,
+                    x: block.velocity.x * 0.85,
                     y: block.velocity.y
                 });
+            }
+
+            // Dampen angular velocity
+            if (Math.abs(block.angularVelocity) > 0.01) {
+                Body.setAngularVelocity(block, block.angularVelocity * 0.9);
             }
         });
     }
@@ -1477,9 +1973,15 @@
                     block.render.strokeStyle = '#fbbf24';
                     block.render.lineWidth = 3;
 
-                    // Make block heavier and more stable
-                    Body.setMass(block, block.mass * 1.5);
-                    block.friction = 1;
+                    // Make block heavier and much more stable
+                    Body.setMass(block, block.mass * 2.0);
+                    block.friction = 1.0;
+                    block.frictionStatic = 2.0;  // Very high static friction
+                    block.frictionAir = 0.1;     // More air resistance
+
+                    // Kill any remaining velocity when locked
+                    Body.setVelocity(block, { x: 0, y: 0 });
+                    Body.setAngularVelocity(block, 0);
                 }
             });
 
@@ -1626,6 +2128,20 @@
         if (block.hasLanded) return;
         block.hasLanded = true;
 
+        // Make block sticky when landed - high friction for stability
+        block.friction = 0.99;
+        block.frictionStatic = 1.0;
+        block.frictionAir = 0.05;  // More air drag to settle faster
+
+        // Kill most horizontal velocity on landing for stability
+        Body.setVelocity(block, {
+            x: block.velocity.x * 0.3,
+            y: block.velocity.y * 0.5
+        });
+
+        // Reduce angular velocity
+        Body.setAngularVelocity(block, block.angularVelocity * 0.3);
+
         if (!state.stackedBlocks.includes(block)) {
             state.stackedBlocks.push(block);
             state.blocksStacked++;
@@ -1667,22 +2183,27 @@
         const config = PROJECTILES[projType] || PROJECTILES.coal;
 
         const direction = block.position.x > projectile.position.x ? 1 : -1;
-        let force = config.impactForce;
+        let force = config.impactForce * 0.6; // Reduced base force
 
-        // Locked blocks take reduced knockback
+        // Locked blocks take greatly reduced knockback
         const isLocked = state.lockedBlocks.has(block.id);
         if (isLocked) {
-            force *= 0.3; // 70% reduction
+            force *= 0.15; // 85% reduction for locked blocks
         }
 
-        // Apply force
+        // Stacked blocks also get reduced knockback
+        if (block.hasLanded) {
+            force *= 0.5; // 50% reduction for any landed block
+        }
+
+        // Apply force (reduced multipliers)
         Body.applyForce(block, block.position, {
-            x: direction * force * block.mass * 1.5,
-            y: -force * block.mass * 0.3
+            x: direction * force * block.mass * 0.8,
+            y: -force * block.mass * 0.15
         });
 
-        // Add spin (less for locked blocks)
-        Body.setAngularVelocity(block, (Math.random() - 0.5) * (isLocked ? 0.05 : 0.15));
+        // Add minimal spin (much less for stability)
+        Body.setAngularVelocity(block, (Math.random() - 0.5) * (isLocked ? 0.02 : 0.06));
 
         // Play impact sound and screen shake
         SoundSystem.playImpact(projType);
@@ -1790,16 +2311,16 @@
         Composite.add(state.engine.world, state.currentBlock);
     }
 
-    // Spawn projectiles (from multiple angles)
+    // Spawn projectiles from ceiling with enhanced visuals
     function spawnProjectiles() {
         if (state.isGameOver) return;
 
-        // Play whoosh sound for incoming projectiles
+        // Play warning sound for incoming projectiles
         SoundSystem.playProjectileSpawn();
 
         // More projectiles as game progresses - scales up significantly
         const baseCount = CONFIG.projectileBaseCount;
-        const scaling = Math.floor(state.blocksDropped / 3); // Increase every 3 blocks
+        const scaling = Math.floor(state.blocksDropped / 3);
         const count = Math.min(baseCount + scaling, CONFIG.projectileMaxCount);
 
         for (let i = 0; i < count; i++) {
@@ -1810,86 +2331,87 @@
                 const type = CONFIG.projectileTypes[Math.floor(Math.random() * CONFIG.projectileTypes.length)];
                 const config = PROJECTILES[type];
 
-                // Determine spawn position - from top, left, or right
-                const spawnSide = Math.random();
-                let x, y, vx, vy;
+                // Play individual launch sound for this projectile
+                SoundSystem.playProjectileLaunch(type);
 
                 // Speed increases with game progress
-                const speedMultiplier = 1 + (state.blocksDropped * 0.05);
+                const speedMultiplier = 1 + (state.blocksDropped * 0.04);
 
-                if (spawnSide < 0.4) {
-                    // From top (40% chance)
-                    x = config.size + Math.random() * (state.canvasWidth - config.size * 2);
-                    y = -config.size;
-                    vx = (Math.random() - 0.5) * 6 * speedMultiplier;
-                    vy = (2.5 + Math.random() * 2) * speedMultiplier;
-                } else if (spawnSide < 0.7) {
-                    // From left side at angle (30% chance)
-                    x = -config.size;
-                    y = 50 + Math.random() * (state.canvasHeight * 0.4);
-                    vx = (3 + Math.random() * 3) * speedMultiplier; // Moving right
-                    vy = (1 + Math.random() * 2) * speedMultiplier;
-                } else {
-                    // From right side at angle (30% chance)
-                    x = state.canvasWidth + config.size;
-                    y = 50 + Math.random() * (state.canvasHeight * 0.4);
-                    vx = -(3 + Math.random() * 3) * speedMultiplier; // Moving left
-                    vy = (1 + Math.random() * 2) * speedMultiplier;
-                }
+                // ALL projectiles spawn from the ceiling now
+                const margin = config.size * 2;
+                const x = margin + Math.random() * (state.canvasWidth - margin * 2);
+                const y = -config.size - 10;
+
+                // Random horizontal drift + downward velocity
+                const vx = (Math.random() - 0.5) * 4 * speedMultiplier;
+                const vy = (2 + Math.random() * 2.5) * speedMultiplier;
 
                 let projectile;
+                const renderOptions = {
+                    fillStyle: config.color,
+                    strokeStyle: config.borderColor,
+                    lineWidth: 2
+                };
+
+                // Create projectile based on shape type
                 if (config.shape === 'polygon') {
-                    const sides = 5 + Math.floor(Math.random() * 3);
+                    const sides = config.sides || (5 + Math.floor(Math.random() * 3));
                     projectile = Bodies.polygon(x, y, sides, config.size, {
                         label: `projectile_${type}`,
                         projectileType: type,
                         friction: 0.3,
                         restitution: config.restitution,
                         density: config.density,
-                        render: {
-                            fillStyle: config.color,
-                            strokeStyle: config.borderColor,
-                            lineWidth: 2
-                        }
+                        render: renderOptions
                     });
-                } else if (config.shape === 'rectangle') {
-                    // Candy cane shape
-                    projectile = Bodies.rectangle(x, y, config.size * 0.5, config.size * 2.5, {
+                } else if (config.shape === 'triangle') {
+                    // Icicle - pointed triangle
+                    projectile = Bodies.polygon(x, y, 3, config.size, {
                         label: `projectile_${type}`,
                         projectileType: type,
                         friction: 0.3,
                         restitution: config.restitution,
                         density: config.density,
-                        render: {
-                            fillStyle: config.color,
-                            strokeStyle: config.borderColor,
-                            lineWidth: 2
-                        }
+                        render: renderOptions
+                    });
+                } else if (config.shape === 'rectangle') {
+                    // Rectangle shapes (candycane, giftbox)
+                    const width = type === 'giftbox' ? config.size * 1.2 : config.size * 0.5;
+                    const height = type === 'giftbox' ? config.size * 1.2 : config.size * 2.5;
+                    projectile = Bodies.rectangle(x, y, width, height, {
+                        label: `projectile_${type}`,
+                        projectileType: type,
+                        friction: 0.3,
+                        restitution: config.restitution,
+                        density: config.density,
+                        render: renderOptions,
+                        chamfer: type === 'giftbox' ? { radius: 2 } : undefined
                     });
                 } else {
+                    // Circle shapes (default)
                     projectile = Bodies.circle(x, y, config.size, {
                         label: `projectile_${type}`,
                         projectileType: type,
                         friction: 0.3,
                         restitution: config.restitution,
                         density: config.density,
-                        render: {
-                            fillStyle: config.color,
-                            strokeStyle: config.borderColor,
-                            lineWidth: 2
-                        }
+                        render: renderOptions
                     });
                 }
+
+                // Store effect configuration on the projectile
+                projectile.effectConfig = config;
 
                 // Set velocity based on spawn position
                 Body.setVelocity(projectile, { x: vx, y: vy });
 
-                // Add some spin
-                Body.setAngularVelocity(projectile, (Math.random() - 0.5) * 0.15);
+                // Add spin - more for stars and decorative items
+                const spinAmount = config.spin ? 0.3 : 0.15;
+                Body.setAngularVelocity(projectile, (Math.random() - 0.5) * spinAmount);
 
                 state.projectiles.push(projectile);
                 Composite.add(state.engine.world, projectile);
-            }, i * 180); // Faster spawning
+            }, i * 180);
         }
 
         // Spawn next block after projectile rain
@@ -1898,6 +2420,144 @@
                 spawnNextBlock();
             }
         }, 400 + (count * 180));
+    }
+
+    // Draw projectile effects (trails, glows, sparkles)
+    function drawProjectileEffects(ctx) {
+        const now = Date.now();
+
+        // Update and draw trails
+        projectileEffects.trails = projectileEffects.trails.filter(trail => {
+            trail.life -= 0.05;
+            if (trail.life <= 0) return false;
+
+            ctx.beginPath();
+            ctx.arc(trail.x, trail.y, trail.size * trail.life, 0, Math.PI * 2);
+            ctx.fillStyle = trail.color.replace(')', `, ${trail.life * 0.6})`).replace('rgba', 'rgba').replace('rgb', 'rgba');
+            ctx.fill();
+            return true;
+        });
+
+        // Update and draw sparkles
+        projectileEffects.sparkles = projectileEffects.sparkles.filter(sparkle => {
+            sparkle.life -= 0.08;
+            if (sparkle.life <= 0) return false;
+
+            sparkle.x += sparkle.vx;
+            sparkle.y += sparkle.vy;
+            sparkle.vy += 0.1; // gravity
+
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(sparkle.x, sparkle.y, sparkle.size * sparkle.life, 0, Math.PI * 2);
+            ctx.fillStyle = sparkle.color;
+            ctx.shadowColor = sparkle.color;
+            ctx.shadowBlur = 5;
+            ctx.fill();
+            ctx.restore();
+            return true;
+        });
+
+        // Draw effects for each projectile
+        state.projectiles.forEach(proj => {
+            const config = proj.effectConfig || PROJECTILES[proj.projectileType];
+            if (!config) return;
+
+            const x = proj.position.x;
+            const y = proj.position.y;
+
+            // Add trail particles
+            if (config.trail && Math.random() > 0.5) {
+                projectileEffects.trails.push({
+                    x: x + (Math.random() - 0.5) * 5,
+                    y: y + (Math.random() - 0.5) * 5,
+                    size: config.size * 0.4,
+                    color: config.trailColor || config.glowColor,
+                    life: 1
+                });
+            }
+
+            // Add sparkles for sparkly projectiles
+            if (config.sparkle && Math.random() > 0.7) {
+                projectileEffects.sparkles.push({
+                    x: x + (Math.random() - 0.5) * config.size,
+                    y: y + (Math.random() - 0.5) * config.size,
+                    vx: (Math.random() - 0.5) * 2,
+                    vy: (Math.random() - 0.5) * 2,
+                    size: 3 + Math.random() * 2,
+                    color: config.particleColor,
+                    life: 1
+                });
+            }
+
+            // Draw glow effect
+            if (config.glowColor) {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(x, y, config.size * 1.5, 0, Math.PI * 2);
+                ctx.fillStyle = config.glowColor;
+                ctx.shadowColor = config.glowColor;
+                ctx.shadowBlur = 15;
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // Draw special decorations for certain types
+            if (config.stripes && proj.projectileType === 'candycane') {
+                // Draw candy cane stripes
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(proj.angle);
+                for (let i = -3; i <= 3; i++) {
+                    ctx.fillStyle = i % 2 === 0 ? '#ffffff' : '#dc2626';
+                    ctx.fillRect(-config.size * 0.25, i * 5 - 2, config.size * 0.5, 4);
+                }
+                ctx.restore();
+            }
+
+            if (config.ribbon && proj.projectileType === 'giftbox') {
+                // Draw gift ribbon
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(proj.angle);
+                ctx.fillStyle = '#dc2626';
+                ctx.fillRect(-config.size * 0.6, -2, config.size * 1.2, 4);
+                ctx.fillRect(-2, -config.size * 0.6, 4, config.size * 1.2);
+                // Bow
+                ctx.beginPath();
+                ctx.arc(0, -config.size * 0.5, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            if (config.shiny && proj.projectileType === 'ornament') {
+                // Draw ornament shine and cap
+                ctx.save();
+                ctx.translate(x, y);
+                // Shine
+                ctx.beginPath();
+                ctx.arc(-config.size * 0.3, -config.size * 0.3, config.size * 0.25, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.fill();
+                // Cap
+                ctx.fillStyle = '#fbbf24';
+                ctx.fillRect(-4, -config.size - 2, 8, 6);
+                ctx.restore();
+            }
+
+            if (config.berries && proj.projectileType === 'mistletoe') {
+                // Draw mistletoe berries
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.fillStyle = '#dc2626';
+                ctx.beginPath();
+                ctx.arc(-4, 4, 3, 0, Math.PI * 2);
+                ctx.arc(4, 4, 3, 0, Math.PI * 2);
+                ctx.arc(0, 7, 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        });
     }
 
     // Update display (height instead of score)
@@ -2013,7 +2673,10 @@
         Events.on(state.render, 'afterRender', function() {
             const ctx = state.render.context;
 
-            // Draw decorations (behind everything)
+            // Draw projectile effects (trails, glows, sparkles) - behind projectiles
+            drawProjectileEffects(ctx);
+
+            // Draw decorations (behind everything else)
             drawDecorations(ctx);
 
             // Draw snowflakes (in front of decorations, behind UI)
@@ -2039,8 +2702,9 @@
                 // Update platform position (mouse/touch controlled)
                 updatePlatform();
 
-                // Recalculate height continuously
+                // Stabilize stacked blocks to prevent flying off
                 if (state.stackedBlocks.length > 0) {
+                    stabilizeStack();
                     calculateStackHeight();
                 }
 
@@ -2153,9 +2817,14 @@
             handleBodyFallen(state.currentBlock);
             state.currentBlock = null;
 
-            setTimeout(() => {
-                if (!state.isGameOver) spawnNextBlock();
-            }, 300);
+            // Game over if any block is missed (not caught)
+            if (!state.isGameOver) {
+                SoundSystem.playLoseLife();
+                triggerScreenShake(15);
+                setTimeout(() => {
+                    if (!state.isGameOver) endGame();
+                }, 100);
+            }
         }
     }
 

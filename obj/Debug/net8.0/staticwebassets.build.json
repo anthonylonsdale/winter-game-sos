@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "LacQ1tTXutoMafx/AZy23Sf/xxK+4X4+Nre8e90Ifzo=",
+  "Hash": "peKxSeibkS3ek/guC0rS9iz4oxAbodUKLmMXHY8IJM0=",
   "Source": "SnowballStacker",
   "BasePath": "_content/SnowballStacker",
   "Mode": "Default",
@@ -36,6 +36,25 @@
       "OriginalItemSpec": "wwwroot\\css\\site.css"
     },
     {
+      "Identity": "C:\\Users\\alons\\VS Code Projects\\NewGame\\wwwroot\\images\\background.jpg",
+      "SourceId": "SnowballStacker",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\alons\\VS Code Projects\\NewGame\\wwwroot\\",
+      "BasePath": "_content/SnowballStacker",
+      "RelativePath": "images/background.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\images\\background.jpg"
+    },
+    {
       "Identity": "C:\\Users\\alons\\VS Code Projects\\NewGame\\wwwroot\\js\\game.js",
       "SourceId": "SnowballStacker",
       "SourceType": "Discovered",
@@ -53,6 +72,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\js\\game.js"
+    },
+    {
+      "Identity": "C:\\Users\\alons\\VS Code Projects\\NewGame\\wwwroot\\js\\musicplayer.js",
+      "SourceId": "SnowballStacker",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\alons\\VS Code Projects\\NewGame\\wwwroot\\",
+      "BasePath": "_content/SnowballStacker",
+      "RelativePath": "js/musicplayer.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\js\\musicplayer.js"
     },
     {
       "Identity": "C:\\Users\\alons\\VS Code Projects\\NewGame\\wwwroot\\js\\snowfall.js",

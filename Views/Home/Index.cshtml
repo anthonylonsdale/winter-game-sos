@@ -4,39 +4,89 @@
 }
 
 <div class="launch-container">
-    <div class="game-title">
-        <div class="decorative-snowflakes">
-            <span>*</span>
-            <span>*</span>
-            <span>*</span>
+    <!-- Left side: Snowman -->
+    <div class="snowman-container left-side">
+        <div class="snowman">
+            <!-- Snowballs forming the body -->
+            <div class="snowball bottom-ball">
+                <div class="snow-shine"></div>
+            </div>
+            <div class="snowball middle-ball">
+                <div class="snow-shine"></div>
+                <div class="button"></div>
+                <div class="button"></div>
+                <div class="button"></div>
+            </div>
+            <div class="snowball top-ball">
+                <div class="snow-shine"></div>
+                <div class="eye left"></div>
+                <div class="eye right"></div>
+                <div class="carrot-nose"></div>
+                <div class="mouth">
+                    <span></span><span></span><span></span><span></span><span></span>
+                </div>
+            </div>
+            <!-- Hat -->
+            <div class="hat">
+                <div class="hat-band"></div>
+                <div class="hat-top"></div>
+            </div>
+            <!-- Arms -->
+            <div class="arm left-arm">
+                <div class="twig"></div>
+                <div class="twig small"></div>
+            </div>
+            <div class="arm right-arm">
+                <div class="twig"></div>
+                <div class="twig small"></div>
+            </div>
+            <!-- Scarf -->
+            <div class="scarf">
+                <div class="scarf-wrap"></div>
+                <div class="scarf-tail"></div>
+            </div>
         </div>
-        <h1>Snowball Stacker</h1>
-        <p class="subtitle">Stack 'em high, watch the coal fly!</p>
+        <!-- Snow pile under snowman -->
+        <div class="snow-pile"></div>
+        <!-- Sparkles -->
+        <div class="sparkle s1"></div>
+        <div class="sparkle s2"></div>
+        <div class="sparkle s3"></div>
     </div>
 
-    <div class="main-content">
-        <div class="card start-card">
-            <h2 class="card-title">
-                <span class="icon">&#9924;</span>
-                Start Playing
-            </h2>
-            <form asp-action="StartGame" method="post" class="name-form">
-                <div class="input-group">
-                    <label for="playerName">Enter Your Name</label>
-                    <input type="text"
-                           id="playerName"
-                           name="playerName"
-                           class="name-input"
-                           placeholder="Your name here..."
-                           maxlength="50"
-                           required
-                           autocomplete="off" />
-                </div>
-                <button type="submit" class="start-button" id="startBtn">
-                    Let's Stack!
-                </button>
-            </form>
+    <!-- Center content -->
+    <div class="center-content">
+        <div class="game-title">
+            <div class="decorative-snowflakes">
+                <span>*</span>
+                <span>*</span>
+                <span>*</span>
+            </div>
+            <h1>Snowball Stacker</h1>
         </div>
+
+        <div class="main-content">
+            <div class="card start-card">
+                <h2 class="card-title">
+                    <span class="icon">&#9924;</span>
+                    Start Playing
+                </h2>
+                <form asp-action="StartGame" method="post" class="name-form">
+                    <div class="input-group">
+                        <input type="text"
+                               id="playerName"
+                               name="playerName"
+                               class="name-input"
+                               placeholder="Your name here..."
+                               maxlength="50"
+                               required
+                               autocomplete="off" />
+                    </div>
+                    <button type="submit" class="start-button" id="startBtn">
+                        Let's Stack!
+                    </button>
+                </form>
+            </div>
 
         <div class="card leaderboard-card">
             <h2 class="card-title">
@@ -74,6 +124,12 @@
                     </div>
                 }
             </div>
+            <form asp-action="ClearAllData" method="post" id="clearDataForm" class="clear-data-form">
+                <button type="button" class="clear-button" onclick="confirmClearData()">
+                    Clear All Data
+                </button>
+            </form>
+        </div>
         </div>
     </div>
 </div>
@@ -93,5 +149,12 @@
 
     // Focus input on load
     nameInput.focus();
+
+    // Confirm before clearing all data
+    function confirmClearData() {
+        if (confirm('Are you sure you want to clear ALL data?\n\nThis will delete all players and scores permanently!')) {
+            document.getElementById('clearDataForm').submit();
+        }
+    }
 </script>
 }

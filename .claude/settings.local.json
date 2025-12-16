@@ -6,7 +6,8 @@
       "Bash(dotnet build:*)",
       "mcp__ide__getDiagnostics",
       "Bash(del \"C:\\Users\\alons\\VS Code Projects\\NewGame\\snowballstacker.db\")",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(dir /s /b \"C:\\Users\\alons\\VS Code Projects\\NewGame\\*background*\")"
     ]
   }
 }
