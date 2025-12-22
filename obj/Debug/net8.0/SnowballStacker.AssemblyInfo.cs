@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SnowballStacker")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ab02d8316cc0d2d715f80bd7912de91e67273ae7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f542b1fd407947f053066656521fa5b2a0c99127")]
 [assembly: System.Reflection.AssemblyProductAttribute("SnowballStacker")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SnowballStacker")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -2532,11 +2532,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\alons\\VS Code Projects\\NewGame\\SnowballStacker.csproj",
+      "projectUniqueName": "C:\\Users\\alons\\VS Code Projects\\SOS Arcade\\SnowballStacker.csproj",
       "projectName": "SnowballStacker",
-      "projectPath": "C:\\Users\\alons\\VS Code Projects\\NewGame\\SnowballStacker.csproj",
+      "projectPath": "C:\\Users\\alons\\VS Code Projects\\SOS Arcade\\SnowballStacker.csproj",
       "packagesPath": "C:\\Users\\alons\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\alons\\VS Code Projects\\NewGame\\obj\\",
+      "outputPath": "C:\\Users\\alons\\VS Code Projects\\SOS Arcade\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

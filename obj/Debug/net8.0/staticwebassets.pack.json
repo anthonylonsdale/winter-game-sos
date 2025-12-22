@@ -1,24 +1,60 @@
 {
   "Files": [
     {
-      "Id": "C:\\Users\\alons\\VS Code Projects\\NewGame\\wwwroot\\css\\site.css",
+      "Id": "C:\\Users\\alons\\VS Code Projects\\SOS Arcade\\wwwroot\\css\\arcade.css",
+      "PackagePath": "staticwebassets\\css\\arcade.css"
+    },
+    {
+      "Id": "C:\\Users\\alons\\VS Code Projects\\SOS Arcade\\wwwroot\\css\\site.css",
       "PackagePath": "staticwebassets\\css\\site.css"
     },
     {
-      "Id": "C:\\Users\\alons\\VS Code Projects\\NewGame\\wwwroot\\images\\background.jpg",
+      "Id": "C:\\Users\\alons\\VS Code Projects\\SOS Arcade\\wwwroot\\images\\background.jpg",
       "PackagePath": "staticwebassets\\images\\background.jpg"
     },
     {
-      "Id": "C:\\Users\\alons\\VS Code Projects\\NewGame\\wwwroot\\js\\game.js",
+      "Id": "C:\\Users\\alons\\VS Code Projects\\SOS Arcade\\wwwroot\\js\\game.js",
       "PackagePath": "staticwebassets\\js\\game.js"
     },
     {
-      "Id": "C:\\Users\\alons\\VS Code Projects\\NewGame\\wwwroot\\js\\musicplayer.js",
+      "Id": "C:\\Users\\alons\\VS Code Projects\\SOS Arcade\\wwwroot\\js\\musicplayer.js",
       "PackagePath": "staticwebassets\\js\\musicplayer.js"
     },
     {
-      "Id": "C:\\Users\\alons\\VS Code Projects\\NewGame\\wwwroot\\js\\snowfall.js",
+      "Id": "C:\\Users\\alons\\VS Code Projects\\SOS Arcade\\wwwroot\\js\\snowfall.js",
       "PackagePath": "staticwebassets\\js\\snowfall.js"
+    },
+    {
+      "Id": "C:\\Users\\alons\\VS Code Projects\\SOS Arcade\\wwwroot\\roms\\40d0e0fb-3b6a-48ea-83d7-5a40a6dff9fe.zip",
+      "PackagePath": "staticwebassets\\roms\\40d0e0fb-3b6a-48ea-83d7-5a40a6dff9fe.zip"
+    },
+    {
+      "Id": "C:\\Users\\alons\\VS Code Projects\\SOS Arcade\\wwwroot\\roms\\aeae35b4-2f6c-4ce4-b579-ddb0e161a977.zip",
+      "PackagePath": "staticwebassets\\roms\\aeae35b4-2f6c-4ce4-b579-ddb0e161a977.zip"
+    },
+    {
+      "Id": "C:\\Users\\alons\\VS Code Projects\\SOS Arcade\\wwwroot\\roms\\covers\\Clubhouse_Games_cover.jpg",
+      "PackagePath": "staticwebassets\\roms\\covers\\Clubhouse_Games_cover.jpg"
+    },
+    {
+      "Id": "C:\\Users\\alons\\VS Code Projects\\SOS Arcade\\wwwroot\\roms\\covers\\Mike_Tysons_Punch_Out_cover.jpg",
+      "PackagePath": "staticwebassets\\roms\\covers\\Mike_Tysons_Punch_Out_cover.jpg"
+    },
+    {
+      "Id": "C:\\Users\\alons\\VS Code Projects\\SOS Arcade\\wwwroot\\roms\\covers\\New_Super_Mario_Bros_cover.jpg",
+      "PackagePath": "staticwebassets\\roms\\covers\\New_Super_Mario_Bros_cover.jpg"
+    },
+    {
+      "Id": "C:\\Users\\alons\\VS Code Projects\\SOS Arcade\\wwwroot\\roms\\covers\\Warioware_cover.jpg",
+      "PackagePath": "staticwebassets\\roms\\covers\\Warioware_cover.jpg"
+    },
+    {
+      "Id": "C:\\Users\\alons\\VS Code Projects\\SOS Arcade\\wwwroot\\roms\\ea633190-9560-4f72-92f5-299a1a08afc1.zip",
+      "PackagePath": "staticwebassets\\roms\\ea633190-9560-4f72-92f5-299a1a08afc1.zip"
+    },
+    {
+      "Id": "C:\\Users\\alons\\VS Code Projects\\SOS Arcade\\wwwroot\\roms\\f51b1597-7e70-4bfb-8400-2a1c2c222810.zip",
+      "PackagePath": "staticwebassets\\roms\\f51b1597-7e70-4bfb-8400-2a1c2c222810.zip"
     },
     {
       "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.SnowballStacker.Microsoft.AspNetCore.StaticWebAssets.props",

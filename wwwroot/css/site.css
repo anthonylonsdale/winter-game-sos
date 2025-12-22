@@ -711,6 +711,7 @@ main {
 
 .snowman-container.left-side {
     align-self: center;
+    transform: scaleX(-1);
 }
 
 .snowman {

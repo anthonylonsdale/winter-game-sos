@@ -1,0 +1,226 @@
+@model ArcadeMenuViewModel
+@{
+    ViewData["Title"] = "SOS Arcade";
+    Layout = "~/Views/Shared/_ArcadeLayout.cshtml";
+}
+
+<div class="arcade-container">
+    <header class="arcade-header">
+        <div class="arcade-logo">
+            <div class="logo-glow"></div>
+            <h1>SOS ARCADE</h1>
+            <p class="tagline">Select Your Game</p>
+        </div>
+    </header>
+
+    <main class="arcade-content">
+        <!-- Built-in Games Section -->
+        <section class="games-section">
+            <h2 class="section-title">
+                <span class="icon">&#127918;</span>
+                Featured Games
+            </h2>
+            <div class="games-grid">
+                @foreach (var game in Model.BuiltInGames)
+                {
+                    <a href="@game.Route" class="game-card featured">
+                        <div class="game-cover">
+                            <div class="cover-placeholder winter-theme">
+                                <div class="snowman-icon">&#9924;</div>
+                            </div>
+                            <div class="game-overlay">
+                                <span class="play-icon">&#9658;</span>
+                            </div>
+                        </div>
+                        <div class="game-info">
+                            <h3 class="game-title">@game.Name</h3>
+                            <p class="game-description">@game.Description</p>
+                        </div>
+                    </a>
+                }
+            </div>
+        </section>
+
+        <!-- ROM Games Section -->
+        <section class="games-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <span class="icon">&#128190;</span>
+                    ROM Library
+                </h2>
+                <div class="section-actions">
+                    <button class="upload-btn" onclick="openUploadModal()">
+                        <span>+</span> Add ROM
+                    </button>
+                </div>
+            </div>
+
+            @if (Model.RomGames.Any())
+            {
+                <div class="games-grid">
+                    @foreach (var game in Model.RomGames)
+                    {
+                        <div class="game-card rom-card" data-rom-id="@game.RomId">
+                            <a href="/Emulator/Play/@game.RomId" class="game-link">
+                                <div class="game-cover">
+                                    @if (game.CoverImage != null && !game.CoverImage.Contains("default"))
+                                    {
+                                        <img src="@game.CoverImage" alt="@game.Name" class="cover-image" />
+                                    }
+                                    else
+                                    {
+                                        <div class="cover-placeholder @(game.Core)-theme">
+                                            <span class="console-badge">@game.Core?.ToUpper()</span>
+                                        </div>
+                                    }
+                                    <div class="game-overlay">
+                                        <span class="play-icon">&#9658;</span>
+                                    </div>
+                                </div>
+                                <div class="game-info">
+                                    <h3 class="game-title">@game.Name</h3>
+                                    <p class="game-description">@game.Description</p>
+                                </div>
+                            </a>
+                            <button class="delete-rom-btn" onclick="confirmDeleteRom(@game.RomId, '@game.Name')" title="Delete ROM">
+                                &times;
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-library">
+                    <div class="empty-icon">&#128191;</div>
+                    <p>No ROMs loaded yet</p>
+                    <p class="hint">Drop ROM files in wwwroot/roms or click "Add ROM"</p>
+                    <p class="supported">Supported: NDS, NES, SNES, GB, GBC, GBA, Genesis, N64</p>
+                </div>
+            }
+        </section>
+    </main>
+</div>
+
+<!-- Upload ROM Modal -->
+<div class="modal-overlay" id="uploadModal" style="display: none;">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>Add ROM</h2>
+            <button class="modal-close" onclick="closeUploadModal()">&times;</button>
+        </div>
+        <form asp-controller="Arcade" asp-action="UploadRom" method="post" enctype="multipart/form-data" class="upload-form">
+            <div class="form-group">
+                <label for="romFile">ROM File</label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="romFile" name="romFile" accept=".zip,.nes,.smc,.sfc,.gb,.gbc,.gba,.nds,.md,.gen,.bin,.n64,.z64,.v64" required />
+                    <div class="file-input-display">
+                        <span class="file-icon">&#128190;</span>
+                        <span class="file-text" id="fileText">Choose a ROM file...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="consoleType">Console Type</label>
+                <select id="consoleType" name="consoleType" class="text-input" required>
+                    <option value="">-- Select Console --</option>
+                    <option value="nds">Nintendo DS</option>
+                    <option value="nes">Nintendo (NES)</option>
+                    <option value="snes">Super Nintendo (SNES)</option>
+                    <option value="gb">Game Boy</option>
+                    <option value="gbc">Game Boy Color</option>
+                    <option value="gba">Game Boy Advance</option>
+                    <option value="segaMD">Sega Genesis / Mega Drive</option>
+                    <option value="n64">Nintendo 64</option>
+                    <option value="psx">PlayStation</option>
+                    <option value="atari2600">Atari 2600</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="gameName">Game Name (optional)</label>
+                <input type="text" id="gameName" name="gameName" class="text-input" placeholder="Leave blank to use filename" maxlength="100" />
+            </div>
+            <div class="form-group">
+                <label for="description">Description (optional)</label>
+                <textarea id="description" name="description" class="text-input" placeholder="Short description..." rows="2" maxlength="200"></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="closeUploadModal()">Cancel</button>
+                <button type="submit" class="btn-upload">Upload ROM</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteModal" style="display: none;">
+    <div class="modal modal-confirm">
+        <div class="modal-header">
+            <h2>Delete ROM</h2>
+        </div>
+        <div class="modal-body">
+            <p>Are you sure you want to delete <strong id="deleteRomName"></strong>?</p>
+            <p class="warning">This action cannot be undone.</p>
+        </div>
+        <div class="form-actions">
+            <button type="button" class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+            <form id="deleteForm" asp-controller="Arcade" asp-action="DeleteRom" method="post" style="display: inline;">
+                <input type="hidden" name="id" id="deleteRomId" />
+                <button type="submit" class="btn-delete">Delete</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@if (TempData["Error"] != null)
+{
+    <div class="toast toast-error" id="errorToast">@TempData["Error"]</div>
+}
+@if (TempData["Success"] != null)
+{
+    <div class="toast toast-success" id="successToast">@TempData["Success"]</div>
+}
+
+@section Scripts {
+<script>
+    // Upload Modal
+    function openUploadModal() {
+        document.getElementById('uploadModal').style.display = 'flex';
+    }
+
+    function closeUploadModal() {
+        document.getElementById('uploadModal').style.display = 'none';
+    }
+
+    // Delete Modal
+    function confirmDeleteRom(id, name) {
+        document.getElementById('deleteRomId').value = id;
+        document.getElementById('deleteRomName').textContent = name;
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+    }
+
+    // File input display
+    document.getElementById('romFile').addEventListener('change', function(e) {
+        const fileName = e.target.files[0]?.name || 'Choose a ROM file...';
+        document.getElementById('fileText').textContent = fileName;
+    });
+
+    // Close modal on outside click
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.style.display = 'none';
+            }
+        });
+    });
+
+    // Toast auto-hide
+    setTimeout(() => {
+        document.querySelectorAll('.toast').forEach(t => t.style.opacity = '0');
+    }, 3000);
+</script>
+}

@@ -7,7 +7,21 @@
       "mcp__ide__getDiagnostics",
       "Bash(del \"C:\\Users\\alons\\VS Code Projects\\NewGame\\snowballstacker.db\")",
       "Bash(rm:*)",
-      "Bash(dir /s /b \"C:\\Users\\alons\\VS Code Projects\\NewGame\\*background*\")"
+      "Bash(dir /s /b \"C:\\Users\\alons\\VS Code Projects\\NewGame\\*background*\")",
+      "Bash(del \"C:\\\\Users\\\\alons\\\\VS Code Projects\\\\SOS Arcade\\\\snowballstacker.db\")",
+      "Bash(dir \"C:\\\\Users\\\\alons\\\\VS Code Projects\\\\SOS Arcade\\\\*.db\")",
+      "Bash(dir \"C:\\\\Users\\\\alons\\\\VS Code Projects\\\\SOS Arcade\\\\bin\\\\Debug\\\\net8.0\\\\*.db\")",
+      "Bash(dir /s /b \"C:\\\\Users\\\\alons\\\\VS Code Projects\\\\SOS Arcade\\\\*stacker*.db\")",
+      "Bash(dir /s /b \"C:\\\\Users\\\\alons\\\\VS Code Projects\\\\*.db\")",
+      "Bash(findstr:*)",
+      "Bash(dir:*)",
+      "Bash(powershell -Command \"Invoke-WebRequest -Uri ''https://github.com/EmulatorJS/EmulatorJS/releases/download/v4.2.1/data.zip'' -OutFile ''C:\\\\Users\\\\alons\\\\VS Code Projects\\\\SOS Arcade\\\\wwwroot\\\\emulatorjs\\\\data.zip''\")",
+      "WebFetch(domain:api.github.com)",
+      "Bash(del \"C:\\\\Users\\\\alons\\\\VS Code Projects\\\\SOS Arcade\\\\Views\\\\Emulator\\\\PlaySplit.cshtml\")",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(sqlite3:*)",
+      "Bash(powershell:*)",
+      "Bash(ls:*)"
     ]
   }
 }

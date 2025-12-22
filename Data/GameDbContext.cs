@@ -11,6 +11,7 @@ public class GameDbContext : DbContext
 
     public DbSet<Player> Players { get; set; }
     public DbSet<GameScore> GameScores { get; set; }
+    public DbSet<RomGame> RomGames { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -28,6 +29,15 @@ public class GameDbContext : DbContext
                   .WithMany(p => p.Scores)
                   .HasForeignKey(e => e.PlayerId);
             entity.HasIndex(e => e.Score);
+        });
+
+        modelBuilder.Entity<RomGame>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.FileName).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.Core).IsRequired().HasMaxLength(50);
+            entity.HasIndex(e => e.Name);
         });
     }
 }

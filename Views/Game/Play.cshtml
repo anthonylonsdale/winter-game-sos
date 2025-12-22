@@ -2,10 +2,6 @@
     ViewData["Title"] = "Play";
 }
 
-@section Styles {
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
-}
-
 <div class="game-container">
     <header class="game-header">
         <div class="player-display">
@@ -29,7 +25,7 @@
 
         <div class="game-actions">
             <button class="btn btn-secondary" id="restartBtn">Restart</button>
-            <a href="/" class="btn btn-secondary">Exit</a>
+            <a href="/Arcade" class="btn btn-secondary">Exit</a>
         </div>
     </header>
 
@@ -68,12 +64,13 @@
 
         <div class="modal-actions">
             <button class="btn btn-primary" id="playAgainBtn">Play Again</button>
-            <a href="/" class="btn btn-secondary">Leaderboard</a>
+            <a href="/Arcade" class="btn btn-secondary">Back to Arcade</a>
         </div>
     </div>
 </div>
 
 @section Scripts {
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 <script>
     const PLAYER_ID = @ViewBag.PlayerId;
     const PLAYER_NAME = "@ViewBag.PlayerName";

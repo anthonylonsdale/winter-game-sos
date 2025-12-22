@@ -1,0 +1,657 @@
+@model RomGame
+@{
+    ViewData["Title"] = Model.Name;
+    Layout = null;
+    var isNDS = ViewBag.Core == "nds";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>@Model.Name - SOS Arcade</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(180deg, #0a1628 0%, #1a2744 50%, #2d3a52 100%);
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        /* Snowfall Effect */
+        .snowfall {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .snowflake {
+            position: absolute;
+            top: -10px;
+            color: white;
+            font-size: 1em;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+            animation: fall linear infinite;
+            opacity: 0.8;
+        }
+
+        @@keyframes fall {
+            0% {
+                transform: translateY(-10px) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.8;
+            }
+            90% {
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        @@keyframes sway {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(20px); }
+        }
+
+        .emulator-header {
+            background: linear-gradient(180deg, rgba(10, 22, 40, 0.95) 0%, rgba(26, 39, 68, 0.95) 100%);
+            padding: 8px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #3a5a8a;
+            z-index: 100;
+            position: relative;
+        }
+
+        .game-title {
+            color: #e94560;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .console-badge {
+            background: #0f3460;
+            color: #e94560;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header-btn {
+            background: #0f3460;
+            color: #e94560;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .header-btn:hover {
+            background: #e94560;
+            color: white;
+        }
+
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #0a1628 0%, #1a2744 50%, #2d3a52 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #0f3460;
+            border-top-color: #e94560;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            color: #e94560;
+            margin-top: 20px;
+            font-size: 1.1rem;
+        }
+
+        .loading-subtext {
+            color: #666;
+            margin-top: 8px;
+            font-size: 0.9rem;
+        }
+
+        @@keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @if (isNDS)
+        {
+            <text>
+        /* DS Console Style Layout */
+        .ds-console {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            background: transparent;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+
+        .ds-device {
+            background: linear-gradient(180deg, #c8c8c8 0%, #a0a0a0 50%, #b8b8b8 100%);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow:
+                0 10px 40px rgba(0,0,0,0.5),
+                inset 0 2px 0 rgba(255,255,255,0.4),
+                inset 0 -2px 0 rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .ds-screens-container {
+            background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+            border-radius: 8px;
+            padding: 8px;
+            border: 3px solid #333;
+        }
+
+        .ds-screen-wrapper {
+            background: #000;
+            border-radius: 4px;
+            overflow: hidden;
+            width: 700px;
+            height: 525px;
+            position: relative;
+        }
+
+        #game {
+            width: 100%;
+            height: 100%;
+        }
+
+        .ds-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 15px;
+            background: linear-gradient(180deg, #d8d8d8 0%, #c0c0c0 100%);
+            border-radius: 12px;
+        }
+
+        /* D-Pad */
+        .dpad-container {
+            position: relative;
+            width: 130px;
+            height: 130px;
+        }
+
+        .dpad {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 108px;
+            height: 108px;
+        }
+
+        .dpad-btn {
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(180deg, #404040 0%, #2a2a2a 100%);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            font-size: 16px;
+            transition: all 0.1s;
+            user-select: none;
+        }
+
+        .dpad-btn:active, .dpad-btn.active {
+            background: linear-gradient(180deg, #606060 0%, #4a4a4a 100%);
+            color: #fff;
+        }
+
+        .dpad-up { top: 0; left: 36px; border-radius: 8px 8px 0 0; }
+        .dpad-down { bottom: 0; left: 36px; border-radius: 0 0 8px 8px; }
+        .dpad-left { left: 0; top: 36px; border-radius: 8px 0 0 8px; }
+        .dpad-right { right: 0; top: 36px; border-radius: 0 8px 8px 0; }
+        .dpad-center {
+            top: 36px; left: 36px;
+            border-radius: 0;
+            background: #2a2a2a;
+            cursor: default;
+        }
+
+        /* Center buttons (Start/Select) */
+        .center-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .small-btn {
+            width: 60px;
+            height: 20px;
+            background: linear-gradient(180deg, #606060 0%, #404040 100%);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 10px;
+            color: #aaa;
+            font-weight: bold;
+            letter-spacing: 1px;
+            user-select: none;
+        }
+
+        .small-btn:active, .small-btn.active {
+            background: linear-gradient(180deg, #707070 0%, #505050 100%);
+            color: #fff;
+        }
+
+        /* ABXY Buttons */
+        .abxy-container {
+            position: relative;
+            width: 130px;
+            height: 130px;
+        }
+
+        .abxy-btn {
+            position: absolute;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 18px;
+            transition: all 0.1s;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+            user-select: none;
+        }
+
+        .abxy-btn:active, .abxy-btn.active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 rgba(0,0,0,0.3);
+        }
+
+        .btn-a {
+            right: 0; top: 43px;
+            background: linear-gradient(180deg, #e94560 0%, #c73850 100%);
+            color: white;
+        }
+        .btn-b {
+            bottom: 0; left: 43px;
+            background: linear-gradient(180deg, #f5c842 0%, #d4a830 100%);
+            color: #333;
+        }
+        .btn-x {
+            top: 0; left: 43px;
+            background: linear-gradient(180deg, #4287f5 0%, #3070d4 100%);
+            color: white;
+        }
+        .btn-y {
+            left: 0; top: 43px;
+            background: linear-gradient(180deg, #42c870 0%, #30a858 100%);
+            color: white;
+        }
+
+        /* Shoulder buttons */
+        .shoulder-buttons {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .shoulder-btn {
+            width: 90px;
+            height: 28px;
+            background: linear-gradient(180deg, #707070 0%, #505050 100%);
+            border: none;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            color: #ddd;
+            box-shadow: inset 0 -2px 0 rgba(0,0,0,0.3);
+            user-select: none;
+        }
+
+        .shoulder-btn:active, .shoulder-btn.active {
+            background: linear-gradient(180deg, #909090 0%, #707070 100%);
+            color: #fff;
+        }
+            </text>
+        }
+        else
+        {
+            <text>
+        /* Standard emulator layout for non-DS */
+        .emulator-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        #game {
+            width: 100%;
+            height: 100%;
+            max-width: 960px;
+            max-height: 720px;
+        }
+
+        .controls-hint {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 22, 40, 0.9);
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: #a0c4e8;
+            font-size: 0.85rem;
+            text-align: center;
+            border: 1px solid #3a5a8a;
+            z-index: 10;
+        }
+
+        .controls-hint kbd {
+            background: #1a3a5c;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #7ec8e3;
+            margin: 0 2px;
+        }
+            </text>
+        }
+    </style>
+</head>
+<body>
+    <div class="snowfall" id="snowfall"></div>
+
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading @Model.Name</div>
+        <div class="loading-subtext">Initializing @ViewBag.CoreDisplayName emulator...</div>
+    </div>
+
+    <header class="emulator-header">
+        <div class="game-title">
+            <span class="console-badge">@ViewBag.Core.ToString().ToUpper()</span>
+            @Model.Name
+        </div>
+        <div class="header-controls">
+            <button class="header-btn" onclick="toggleFullscreen()">
+                <span>&#9974;</span> Fullscreen
+            </button>
+            <a href="/Arcade" class="header-btn">
+                <span>&#8592;</span> Back
+            </a>
+        </div>
+    </header>
+
+    @if (isNDS)
+    {
+        <div class="ds-console">
+            <div class="ds-device">
+                <div class="shoulder-buttons">
+                    <button class="shoulder-btn" id="btn-l" data-key="l">L</button>
+                    <button class="shoulder-btn" id="btn-r" data-key="r">R</button>
+                </div>
+                <div class="ds-screens-container">
+                    <div class="ds-screen-wrapper">
+                        <div id="game"></div>
+                    </div>
+                </div>
+                <div class="ds-controls">
+                    <div class="dpad-container">
+                        <div class="dpad">
+                            <button class="dpad-btn dpad-up" id="btn-up" data-key="up">▲</button>
+                            <button class="dpad-btn dpad-down" id="btn-down" data-key="down">▼</button>
+                            <button class="dpad-btn dpad-left" id="btn-left" data-key="left">◀</button>
+                            <button class="dpad-btn dpad-right" id="btn-right" data-key="right">▶</button>
+                            <div class="dpad-btn dpad-center"></div>
+                        </div>
+                    </div>
+                    <div class="center-buttons">
+                        <button class="small-btn" id="btn-select" data-key="select">SELECT</button>
+                        <button class="small-btn" id="btn-start" data-key="start">START</button>
+                    </div>
+                    <div class="abxy-container">
+                        <button class="abxy-btn btn-a" id="btn-a" data-key="a">A</button>
+                        <button class="abxy-btn btn-b" id="btn-b" data-key="b">B</button>
+                        <button class="abxy-btn btn-x" id="btn-x" data-key="x">X</button>
+                        <button class="abxy-btn btn-y" id="btn-y" data-key="y">Y</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="emulator-container">
+            <div id="game"></div>
+        </div>
+        <div class="controls-hint">
+            <kbd>Arrow Keys</kbd> D-Pad &nbsp;|&nbsp;
+            <kbd>Z</kbd> A &nbsp;|&nbsp;
+            <kbd>X</kbd> B &nbsp;|&nbsp;
+            <kbd>Enter</kbd> Start &nbsp;|&nbsp;
+            <kbd>Shift</kbd> Select
+        </div>
+    }
+
+    <script>
+        // EmulatorJS configuration - must be set before loader.js
+        EJS_player = '#game';
+        EJS_gameUrl = '/roms/@Uri.EscapeDataString(Model.FileName)';
+        EJS_core = '@ViewBag.Core';
+        EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+        EJS_startOnLoaded = true;
+        EJS_color = '#e94560';
+        EJS_backgroundBlur = false;
+
+        // Performance optimizations
+        EJS_threads = true;  // Enable multi-threading
+        EJS_DEBUG_XX = false;
+
+        // Default options for performance and correct speed
+        EJS_defaultOptions = {
+            'shader': 'disabled',
+            'save-state-slot': 1,
+            'rewindGranularity': 6,
+            'fceumm_region': 'NTSC',           // Force 60fps NTSC for NES
+            'fceumm_frameskip': 'disabled',
+            'fceumm_overclocking': 'disabled',
+            'snes9x_frameskip': 'disabled',
+            'snes9x_overclock_cycles': 'disabled',
+            'gambatte_gb_colorization': 'disabled',
+            'mgba_frameskip': '0',
+            'mupen64plus_cpucore': 'dynamic_recompiler',
+            'mupen64plus_rsp_plugin': 'hle',
+            'desmume_frameskip': '0',
+            'desmume_cpu_mode': 'jit'
+        };
+
+        // Debug: Log what we're loading
+        console.log('Loading ROM:', EJS_gameUrl);
+        console.log('Using core:', EJS_core);
+        console.log('Data path:', EJS_pathtodata);
+    </script>
+    <script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
+    <script>
+
+        // Hide loading screen when emulator is ready
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                document.getElementById('loadingScreen').style.display = 'none';
+            }, 3000);
+        });
+
+        // Handle emulator ready event
+        window.EJS_onGameStart = function() {
+            console.log('Game started successfully!');
+            document.getElementById('loadingScreen').style.display = 'none';
+        };
+
+        function toggleFullscreen() {
+            const container = document.querySelector('@(isNDS ? ".ds-console" : ".emulator-container")');
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                container.requestFullscreen();
+            }
+        }
+
+        @if (isNDS)
+        {
+            <text>
+        // Virtual button controls for DS - EmulatorJS compatible
+        const keyMap = {
+            'up': { key: 'ArrowUp', code: 'ArrowUp', keyCode: 38 },
+            'down': { key: 'ArrowDown', code: 'ArrowDown', keyCode: 40 },
+            'left': { key: 'ArrowLeft', code: 'ArrowLeft', keyCode: 37 },
+            'right': { key: 'ArrowRight', code: 'ArrowRight', keyCode: 39 },
+            'a': { key: 'x', code: 'KeyX', keyCode: 88 },
+            'b': { key: 'z', code: 'KeyZ', keyCode: 90 },
+            'x': { key: 's', code: 'KeyS', keyCode: 83 },
+            'y': { key: 'a', code: 'KeyA', keyCode: 65 },
+            'l': { key: 'q', code: 'KeyQ', keyCode: 81 },
+            'r': { key: 'w', code: 'KeyW', keyCode: 87 },
+            'start': { key: 'Enter', code: 'Enter', keyCode: 13 },
+            'select': { key: 'Shift', code: 'ShiftRight', keyCode: 16 }
+        };
+
+        function simulateKey(keyInfo, type) {
+            const event = new KeyboardEvent(type, {
+                key: keyInfo.key,
+                code: keyInfo.code,
+                keyCode: keyInfo.keyCode,
+                which: keyInfo.keyCode,
+                bubbles: true,
+                cancelable: true
+            });
+            // Dispatch to window for EmulatorJS
+            window.dispatchEvent(event);
+        }
+
+        document.querySelectorAll('[data-key]').forEach(btn => {
+            const key = btn.dataset.key;
+            const keyInfo = keyMap[key];
+
+            // Mouse events
+            btn.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                btn.classList.add('active');
+                simulateKey(keyInfo, 'keydown');
+            });
+
+            btn.addEventListener('mouseup', (e) => {
+                btn.classList.remove('active');
+                simulateKey(keyInfo, 'keyup');
+            });
+
+            btn.addEventListener('mouseleave', (e) => {
+                if (btn.classList.contains('active')) {
+                    btn.classList.remove('active');
+                    simulateKey(keyInfo, 'keyup');
+                }
+            });
+
+            // Touch events
+            btn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                btn.classList.add('active');
+                simulateKey(keyInfo, 'keydown');
+            });
+
+            btn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                btn.classList.remove('active');
+                simulateKey(keyInfo, 'keyup');
+            });
+        });
+            </text>
+        }
+
+        // Generate snowflakes
+        (function createSnowfall() {
+            const snowfall = document.getElementById('snowfall');
+            const snowflakes = ['❄', '❅', '❆', '•', '∗'];
+            const numSnowflakes = 50;
+
+            for (let i = 0; i < numSnowflakes; i++) {
+                const flake = document.createElement('div');
+                flake.className = 'snowflake';
+                flake.innerHTML = snowflakes[Math.floor(Math.random() * snowflakes.length)];
+                flake.style.left = Math.random() * 100 + '%';
+                flake.style.fontSize = (Math.random() * 10 + 8) + 'px';
+                flake.style.opacity = Math.random() * 0.6 + 0.4;
+                flake.style.animationDuration = (Math.random() * 8 + 6) + 's';
+                flake.style.animationDelay = (Math.random() * 10) + 's';
+                snowfall.appendChild(flake);
+            }
+        })();
+    </script>
+</body>
+</html>

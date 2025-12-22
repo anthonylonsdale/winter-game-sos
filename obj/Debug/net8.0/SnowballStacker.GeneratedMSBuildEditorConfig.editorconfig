@@ -9,35 +9,47 @@ build_property.EnforceExtendedAnalyzerRules =
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = SnowballStacker
 build_property.RootNamespace = SnowballStacker
-build_property.ProjectDir = C:\Users\alons\VS Code Projects\NewGame\
+build_property.ProjectDir = C:\Users\alons\VS Code Projects\SOS Arcade\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 8.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = C:\Users\alons\VS Code Projects\NewGame
+build_property.MSBuildProjectDirectory = C:\Users\alons\VS Code Projects\SOS Arcade
 build_property._RazorSourceGeneratorDebug = 
 
-[C:/Users/alons/VS Code Projects/NewGame/Views/Game/Play.cshtml]
+[C:/Users/alons/VS Code Projects/SOS Arcade/Views/Arcade/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQXJjYWRlXEluZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/alons/VS Code Projects/SOS Arcade/Views/Emulator/Play.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRW11bGF0b3JcUGxheS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/alons/VS Code Projects/SOS Arcade/Views/Game/Play.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR2FtZVxQbGF5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/alons/VS Code Projects/NewGame/Views/Home/Error.cshtml]
+[C:/Users/alons/VS Code Projects/SOS Arcade/Views/Home/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxFcnJvci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/alons/VS Code Projects/NewGame/Views/Home/Index.cshtml]
+[C:/Users/alons/VS Code Projects/SOS Arcade/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/alons/VS Code Projects/NewGame/Views/Shared/_Layout.cshtml]
+[C:/Users/alons/VS Code Projects/SOS Arcade/Views/Shared/_ArcadeLayout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9BcmNhZGVMYXlvdXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/alons/VS Code Projects/SOS Arcade/Views/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/alons/VS Code Projects/NewGame/Views/_ViewImports.cshtml]
+[C:/Users/alons/VS Code Projects/SOS Arcade/Views/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/alons/VS Code Projects/NewGame/Views/_ViewStart.cshtml]
+[C:/Users/alons/VS Code Projects/SOS Arcade/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 

@@ -60,7 +60,6 @@
         masterGain: null,
         ambientGain: null,
         ambientNodes: [],
-        bellInterval: null,
         initialized: false,
 
         init() {
@@ -82,35 +81,7 @@
             }
         },
 
-        // Play a single bell chime
-        playBell(freq = 800, volume = 0.08) {
-            if (!this.initialized) return;
-            const now = this.audioContext.currentTime;
-
-            // Bell oscillator
-            const osc = this.audioContext.createOscillator();
-            const osc2 = this.audioContext.createOscillator();
-            const gain = this.audioContext.createGain();
-
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, now);
-            osc2.type = 'sine';
-            osc2.frequency.setValueAtTime(freq * 2.4, now); // Overtone
-
-            gain.gain.setValueAtTime(volume, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 2);
-
-            osc.connect(gain);
-            osc2.connect(gain);
-            gain.connect(this.masterGain);
-
-            osc.start(now);
-            osc2.start(now);
-            osc.stop(now + 2);
-            osc2.stop(now + 2);
-        },
-
-        // Create Christmas ambient sound (gentle bells and chimes)
+        // Create ambient sound (soft shimmer atmosphere)
         startAmbientWind() {
             if (!this.initialized) return;
             this.resume();
@@ -141,20 +112,6 @@
             filter.connect(this.ambientGain);
             shimmer.start();
             this.ambientNodes.push(shimmer);
-
-            // Random gentle bells
-            const bellFreqs = [523, 659, 784, 880, 1047, 1319]; // C5, E5, G5, A5, C6, E6
-            this.bellInterval = setInterval(() => {
-                if (Math.random() < 0.3) {
-                    const freq = bellFreqs[Math.floor(Math.random() * bellFreqs.length)];
-                    this.playBell(freq, 0.04 + Math.random() * 0.03);
-                }
-            }, 1500);
-
-            // Play initial welcoming bells
-            setTimeout(() => this.playBell(523, 0.06), 100);
-            setTimeout(() => this.playBell(659, 0.05), 300);
-            setTimeout(() => this.playBell(784, 0.04), 500);
         },
 
         stopAmbientWind() {
@@ -162,30 +119,6 @@
                 try { node.stop(); } catch(e) {}
             });
             this.ambientNodes = [];
-            if (this.bellInterval) {
-                clearInterval(this.bellInterval);
-                this.bellInterval = null;
-            }
-        },
-
-        // Sleigh bells sound
-        playSleighBells() {
-            if (!this.initialized) return;
-            this.resume();
-            const now = this.audioContext.currentTime;
-
-            for (let i = 0; i < 5; i++) {
-                const osc = this.audioContext.createOscillator();
-                const gain = this.audioContext.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(2000 + Math.random() * 1000, now + i * 0.05);
-                gain.gain.setValueAtTime(0.05, now + i * 0.05);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.1);
-                osc.connect(gain);
-                gain.connect(this.masterGain);
-                osc.start(now + i * 0.05);
-                osc.stop(now + i * 0.05 + 0.15);
-            }
         },
 
         // Soft landing sound (snow/ice landing)
@@ -366,8 +299,6 @@
                 osc.stop(now + i * 0.08 + 0.5);
             });
 
-            // Add shimmer
-            this.playSleighBells();
         },
 
         // Lose life sound (hurt sound)
@@ -675,15 +606,6 @@
                 bassTime += quarter;
             });
 
-            // Gentle bells only on downbeats
-            let bellTime = now + 0.05;
-            for (let i = 0; i < sectionBars * 2; i++) {
-                if (i % 2 === 0) {
-                    this.playSoftBell(bellTime);
-                }
-                bellTime += half;
-            }
-
             // Loop
             const loopDuration = (quarter * sectionBars * 4) * 1000;
             this.musicTimeout = setTimeout(() => {
@@ -722,27 +644,7 @@
             osc.stop(startTime + duration);
         },
 
-        // Soft bell for title screen
-        playSoftBell(startTime) {
-            if (!this.initialized || !this.musicPlaying) return;
-
-            const osc = this.audioContext.createOscillator();
-            const gain = this.audioContext.createGain();
-
-            osc.type = 'sine';
-            osc.frequency.value = 1200 + Math.random() * 400;
-
-            gain.gain.setValueAtTime(0.03, startTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.3);
-
-            osc.connect(gain);
-            gain.connect(this.musicGain);
-
-            osc.start(startTime);
-            osc.stop(startTime + 0.3);
-        },
-
-        // Play a square wave note (8-bit style) with vibrato for bells
+        // Play a square wave note (8-bit style) with vibrato
         playSquareNote(freq, duration, startTime, channel = 1, vibrato = false) {
             if (!this.initialized || !this.musicPlaying) return;
 
@@ -779,38 +681,6 @@
 
             osc.start(startTime);
             osc.stop(startTime + duration);
-        },
-
-        // Play sleigh bell sound
-        playSleighBell(startTime) {
-            if (!this.initialized || !this.musicPlaying) return;
-
-            const bufferSize = this.audioContext.sampleRate * 0.08;
-            const buffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate);
-            const data = buffer.getChannelData(0);
-
-            for (let i = 0; i < bufferSize; i++) {
-                const env = Math.exp(-i / (bufferSize * 0.3));
-                data[i] = (Math.random() * 2 - 1) * env;
-            }
-
-            const noise = this.audioContext.createBufferSource();
-            noise.buffer = buffer;
-
-            const filter = this.audioContext.createBiquadFilter();
-            filter.type = 'bandpass';
-            filter.frequency.value = 8000;
-            filter.Q.value = 2;
-
-            const gain = this.audioContext.createGain();
-            gain.gain.value = 0.06;
-
-            noise.connect(filter);
-            filter.connect(gain);
-            gain.connect(this.musicGain);
-
-            noise.start(startTime);
-            noise.stop(startTime + 0.08);
         },
 
         // Play triangle wave bass note
@@ -1015,7 +885,7 @@
                 bassTime += bassNoteDur;
             });
 
-            // Play drums - festive pattern with sleigh bells
+            // Play drums - festive pattern
             let drumTime = now + 0.05;
             const totalEighths = sectionBars * 8;
             for (let i = 0; i < totalEighths; i++) {
@@ -1023,8 +893,6 @@
                 if (i % 4 === 0) this.playDrum(drumTime, true);
                 // Snare on beats 2 and 4
                 if (i % 4 === 2) this.playDrum(drumTime, false);
-                // Sleigh bells on every eighth note (Christmas feel!)
-                this.playSleighBell(drumTime);
 
                 drumTime += eighth;
             }
